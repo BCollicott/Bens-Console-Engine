@@ -20,12 +20,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BCE_GameConsole.cpp" />
+    <ClCompile Include="BCE_GameObject.cpp" />
     <ClCompile Include="BCE_Panel.cpp" />
+    <ClCompile Include="BCE_Space.cpp" />
     <ClCompile Include="BCE_Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BCE_GameConsole.h" />
+    <ClInclude Include="BCE_GameObject.h" />
     <ClInclude Include="BCE_Panel.h" />
+    <ClInclude Include="BCE_Space.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

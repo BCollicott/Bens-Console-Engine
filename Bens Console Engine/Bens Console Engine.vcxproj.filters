@@ -24,12 +24,24 @@
     <ClCompile Include="BCE_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BCE_Space.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BCE_GameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BCE_GameConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BCE_Panel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BCE_Space.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BCE_GameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

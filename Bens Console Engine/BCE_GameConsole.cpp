@@ -139,10 +139,9 @@ bool BCE_GameConsole::update()
     for (int p = 0; p < panels.size(); p++)
     {
         BCE_Panel* panel = panels[p];   // BCE_Panel from gameConsole
-        if (!WriteConsoleOutput(screenBuffer, panel->array, panel->arraySize, panel->viewportPos, &panel->region))
+        if (!WriteConsoleOutput(screenBuffer, panel->getContents(), panel->panelSize, { 0, 0 }, &panel->region))
         {
-            std::cout << "Failed to write panel console output\n";
-            return false;
+            std::cout << "Failed to write panel contents to console output\n";
         }
     }
 
