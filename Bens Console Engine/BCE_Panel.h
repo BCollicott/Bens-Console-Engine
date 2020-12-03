@@ -4,6 +4,7 @@
 
 // Rectangular area on window displaying a character array
 class BCE_Panel {
+	CHAR_INFO* panelBuffer;	// Buffer of panel drawn to screen
 	SMALL_RECT writeRegion;	// Rectangular region of the console that panel is drawn to
 	COORD panelSize;		// Size of panel itself in rows/cols
 	BCE_Space* space;		// Space viewed by this panel
@@ -12,7 +13,9 @@ class BCE_Panel {
 	public:
 		BCE_Panel(BCE_Space* space, SMALL_RECT writeRegion);	// Constructor
 
-		CHAR_INFO* getSpaceArray();		// Get array of chars from GameObjects of space that are visible in this panel to be drawn to buffer
+		void clearPanelBuffer();		// Fill panel buffer with spaces
+
+		CHAR_INFO* getPanelBuffer();	// Get array of chars from GameObjects of space that are visible in this panel to be drawn to buffer
 		SMALL_RECT getWriteRegion();	// Get region that panel is drawn to in buffer
 		COORD getPanelSize();			// Get size of write region/panel 
 

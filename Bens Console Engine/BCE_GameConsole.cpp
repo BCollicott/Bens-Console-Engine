@@ -6,19 +6,19 @@
 BCE_GameConsole::BCE_GameConsole(short width, short height)
 {
     consoleSize = { width, height };    // Dimensions of console window in number of rows/cols
+    screenBuffer = CreateConsoleScreenBuffer(
+        GENERIC_READ | GENERIC_WRITE,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
+        NULL,
+        CONSOLE_TEXTMODE_BUFFER,
+        NULL);
 };
 
 bool BCE_GameConsole::show(bool stretchToFit)
 {
     SMALL_RECT windowRect = { 0, 0, consoleSize.X - 1, consoleSize.Y - 1 };   // Coordnates of console window in characters, inclusive
 
-    // Create screen buffer
-    HANDLE screenBuffer = CreateConsoleScreenBuffer(
-        GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE,
-        NULL,
-        CONSOLE_TEXTMODE_BUFFER,
-        NULL);
+    // Check if screen buffer was successfully created in constructor
     if (screenBuffer == INVALID_HANDLE_VALUE) {
         std::cout << "Failed to create screen buffer\n";
         return false;
@@ -140,9 +140,9 @@ bool BCE_GameConsole::update()
     for (int p = 0; p < panels.size(); p++)
     {
         BCE_Panel* panel = panels[p];   // BCE_Panel from gameConsole
-        if (!WriteConsoleOutput(screenBuffer, panel->getSpaceArray(), panel->getPanelSize(), { 0, 0 }, &panel->getWriteRegion()))
+        if (!WriteConsoleOutput(screenBuffer, panel->getPanelBuffer(), panel->getPanelSize(), { 0, 0 }, &panel->getWriteRegion()))
         {
-            std::cout << "Failed to write panel contents to console output\n";
+            std::cout << "Failed to write panel buffer to console output\n";
         }
     }
 

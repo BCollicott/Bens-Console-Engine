@@ -7,36 +7,51 @@ BCE_Panel::BCE_Panel(BCE_Space* space, SMALL_RECT writeRegion)
     setSpace(space);
     setWriteRegion(writeRegion);
     setPosInSpace({ 0, 0 });
+
+    // Instantiate buffer array according to recently calculated size and clear it
+    panelBuffer = (CHAR_INFO*)malloc(panelSize.X * panelSize.Y * sizeof(CHAR_INFO));
+    clearPanelBuffer();
 };
 
-CHAR_INFO* BCE_Panel::getSpaceArray()
+void BCE_Panel::clearPanelBuffer()
 {
-    // Create empty array to represent panel contents
-    CHAR_INFO* contents = new CHAR_INFO[panelSize.X * panelSize.Y];
     for (int i = 0; i < panelSize.X * panelSize.Y; i++)
     {
-        contents[i] = { ' ', 0 };
+        panelBuffer[i] = { ' ', 0 };
     }
+}
 
-    // Draw all GameObjects of space to proper panel space
+// Draw all GameObjects of space to panel buffer in proper panel space
+CHAR_INFO* BCE_Panel::getPanelBuffer()
+{
     for (int g = 0; g < space->gameObjects.size(); g++)
     {
-        // Get pointer to next GameObject to be draw to array
-        BCE_GameObject* gameObject = space->gameObjects[g];
-
+        
+        BCE_GameObject* gameObject = space->gameObjects[g]; // Pointer to next GameObject to be draw to array
+        
         // Draw GameObject if it is visible within the panel according to its coordinates and the panel's position in the space
-        if (gameObject->pos.X >= posInSpace.X && gameObject->pos.Y <= posInSpace.Y && gameObject->pos.X < posInSpace.X + panelSize.X && gameObject->pos.Y > posInSpace.Y - panelSize.Y)
+        if (gameObject->pos.X + gameObject->sprite.size.X - 1 >= posInSpace.X && gameObject->pos.Y - (gameObject->sprite.size.Y - 1) <= posInSpace.Y && gameObject->pos.X < posInSpace.X + panelSize.X && gameObject->pos.Y > posInSpace.Y - panelSize.Y)
         {
-            int panelSpacePos = ((gameObject->pos.X - posInSpace.X) % panelSize.X) + (panelSize.X * (-1 * (gameObject->pos.Y - posInSpace.Y)));
-            for (int r = 0; r < gameObject->sprite->size.Y; r++) {
-                for (int c = 0; c < gameObject->sprite->size.X; c++) {
-                    contents[(panelSpacePos + c) + (panelSpacePos + r * panelSize.X)] = gameObject->sprite->string[c + r * panelSize.X];
+            // Position object is drawn to in y-down space relative to panel
+            int panelSpaceX = (gameObject->pos.X - posInSpace.X);
+            int panelSpaceY = (-1 * (gameObject->pos.Y - posInSpace.Y));
+            
+            // Draw sprite to panel buffer
+            BCE_Sprite objectSprite = gameObject->sprite;   // Sprite of visible GameObject to be drawn
+            for (int r = 0; r < objectSprite.size.Y; r++) {
+                for (int c = 0; c < objectSprite.size.X; c++) {
+
+                    // Add character from sprite coordinates if it is visible within the panel
+                    if (gameObject->pos.X + c >= posInSpace.X && gameObject->pos.Y - r <= posInSpace.Y && gameObject->pos.X + c< posInSpace.X + panelSize.X && gameObject->pos.Y - r > posInSpace.Y - panelSize.Y)
+                    {
+                        panelBuffer[panelSpaceX + c + (panelSpaceY + r) * panelSize.X] = objectSprite.string[c + r * objectSprite.size.X];
+                    }
                 }
             }
         }
     }
 
-    return contents;
+    return panelBuffer;
 }
 
 SMALL_RECT BCE_Panel::getWriteRegion()
