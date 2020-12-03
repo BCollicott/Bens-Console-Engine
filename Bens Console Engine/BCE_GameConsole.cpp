@@ -116,7 +116,8 @@ bool BCE_GameConsole::show(bool stretchToFit)
 bool BCE_GameConsole::addPanel(BCE_Panel* panel)
 {
     // Determine if panel fits within console
-    if (panel->region.Left < 0 || panel->region.Top < 0 || panel->region.Right >= consoleSize.X || panel->region.Bottom >= consoleSize.Y)
+    SMALL_RECT panelWriteRegion = panel->getWriteRegion();
+    if (panelWriteRegion.Left < 0 || panelWriteRegion.Top < 0 || panelWriteRegion.Right >= consoleSize.X || panelWriteRegion.Bottom >= consoleSize.Y)
     {
         std::cout << "BCE_Panel exceeds bounds of console\n";
         return false;
@@ -139,7 +140,7 @@ bool BCE_GameConsole::update()
     for (int p = 0; p < panels.size(); p++)
     {
         BCE_Panel* panel = panels[p];   // BCE_Panel from gameConsole
-        if (!WriteConsoleOutput(screenBuffer, panel->getContents(), panel->panelSize, { 0, 0 }, &panel->region))
+        if (!WriteConsoleOutput(screenBuffer, panel->getSpaceArray(), panel->getPanelSize(), { 0, 0 }, &panel->getWriteRegion()))
         {
             std::cout << "Failed to write panel contents to console output\n";
         }

@@ -1,8 +1,8 @@
 #include "BCE_GameObject.h"
+#include "BCE_Sprite.h"
 
-BCE_GameObject::BCE_GameObject(int x, int y, CHAR_INFO* character)
+BCE_GameObject::BCE_GameObject(COORD pos, BCE_Sprite* sprite)
 {
-	BCE_GameObject::x = x;
-	BCE_GameObject::y = y;
-	BCE_GameObject::character = character;
+	BCE_GameObject::pos = pos;
+	BCE_GameObject::sprite = sprite;
 }
