@@ -8,4 +8,7 @@ public:
 
 	BCE_Sprite();
 	BCE_Sprite(CHAR_INFO* string, COORD size);
+	BCE_Sprite(char* string, WORD attributes, COORD size);
+
+	void setText(char* string, WORD attributes);	// Set sprite to a null-terminated string with common attributes
 };
