@@ -11,8 +11,8 @@ int miscTest();
 
 int main()
 {
-    //return snakeDemo(25, 25, false);
-    return miscTest();
+    return snakeDemo(25, 20, false);
+    //return miscTest();
 }
 
 int miscTest()
@@ -133,10 +133,24 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
     // Char used to draw border of gameplay panel
     CHAR_INFO borderChar = { ' ', 0b01110000 };
 
-    // Head of snake controlled by player
-    char scoreString[] = "Score: ";
-    BCE_Sprite scoreSprite(scoreString, 0b00000111, { consoleWidth / 2, 1 });
-    BCE_GameObject scoreLabel({ 0, 0 }, &scoreSprite);
+    // Label for score
+    char scoreLabelString[] = "Score:";
+    BCE_Sprite scoreLabelSprite(scoreLabelString, 0b00000111, { 6, 1 });
+    BCE_GameObject scoreLabelObject({ 0, 0 }, &scoreLabelSprite);
+
+    // Value of score
+    BCE_Sprite scoreValueSprite({ consoleWidth / 2 - 1 + consoleWidth % 2 - scoreLabelSprite.size.X, 1 });
+    //scoreValueSprite.setValue(0, 0b00000100, '0');
+    BCE_GameObject scoreValueObject({ scoreLabelObject.pos.X + scoreLabelObject.size.X, 0 }, &scoreValueSprite);
+
+    // Label for time
+    char timeLabelString[] = "Time:";
+    BCE_Sprite timeLabelSprite(timeLabelString, 0b00000111, { 5, 1 });
+    BCE_GameObject timeLabelObject({ consoleWidth / 2 + consoleWidth % 2, 0 }, &timeLabelSprite);
+
+    // Value of time
+    BCE_Sprite timeValueSprite({ consoleWidth / 2 - timeLabelSprite.size.X, 1 });
+    BCE_GameObject timeValueObject({ timeLabelObject.pos.X + timeLabelObject.size.X, 0 }, &timeValueSprite);
 
     // Space with gameplay objects
     BCE_Space gameSpace;
@@ -146,7 +160,10 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
 
     // Space with text info
     BCE_Space textSpace;
-    textSpace.addGameObject(&scoreLabel);
+    textSpace.addGameObject(&scoreLabelObject);
+    textSpace.addGameObject(&scoreValueObject);
+    textSpace.addGameObject(&timeLabelObject);
+    textSpace.addGameObject(&timeValueObject);
 
     // Fullscreen panel displaying positive X and Y coordinate space
     BCE_Panel gamePanel(&gameSpace, { 1, 1, consoleWidth - 2, consoleHeight - 3 });
@@ -169,11 +186,17 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
     tailQueue.push(snakeObject.pos);
 
     // Set up variables for gameplay
-    SHORT maskMSBLSB = (SHORT)pow(2, (sizeof(SHORT) * 8) - 1) | (SHORT)1;   // Mask containing most sigificant bit and least significant bit of SHORT
+    SHORT keyMask = (SHORT)pow(2, (sizeof(SHORT) * 8) - 1) | (SHORT)1;   // Mask containing most sigificant bit and least significant bit of SHORT for reading key input
     COORD delta = { 1, 0 };                     // Transformation applied to player each frame
     foodObject.pos.X = snakeObject.pos.X + 3;   // Starting x position of food
-    foodObject.pos.Y = snakeObject.pos.Y;        // Starting y position of food
+    foodObject.pos.Y = snakeObject.pos.Y;       // Starting y position of food
     int score = 0;                              // Number of food pieces eaten and used to increase fps
+    int timeSec = 0;                            // Time elapsed in full seconds
+    int timeMs = 0;                             // Time elapsed since last full second
+
+    // Display intital score and time values
+    scoreValueSprite.setValue(score, 0b00000010, '0');
+    timeValueSprite.setValue(timeSec, 0b00000100, '0');
 
     // Main loop
     while (true) {
@@ -181,19 +204,19 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
         COORD lastDelta = delta;    // Transformation applied last frame
 
         // Read input to get requested direction
-        if (GetAsyncKeyState(VK_LEFT) & maskMSBLSB)
+        if (GetAsyncKeyState(VK_LEFT) & keyMask)
         {
             delta = { -1, 0 };
         }
-        if (GetAsyncKeyState(VK_RIGHT) & maskMSBLSB)
+        if (GetAsyncKeyState(VK_RIGHT) & keyMask)
         {
             delta = { 1, 0 };
         }
-        if (GetAsyncKeyState(VK_UP) & maskMSBLSB)
+        if (GetAsyncKeyState(VK_UP) & keyMask)
         {
             delta = { 0, 1 };
         }
-        if (GetAsyncKeyState(VK_DOWN) & maskMSBLSB)
+        if (GetAsyncKeyState(VK_DOWN) & keyMask)
         {
             delta = { 0, -1 };
         }
@@ -227,14 +250,26 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
             } while (gamePanel.getPanelBuffer()[gamePanel.spaceToBufferIndex(foodObject.pos)].Attributes == snakeString.Attributes);
 
 
-            // Increment score
+            // Increment score and update display
             score++;
+            scoreValueSprite.setValue(score, 0b00000010, '0');
         }
         else
         {
             // Clear end of tail at position indicated by front of queue
             clearObject.pos = tailQueue.front();
             tailQueue.pop();
+        }
+
+        // Update timeMs to time about to be slept/frame length and adjust it and timeSec if a full second has elapsed
+        timeMs += 1000 / (5 + score / 5);
+        if (timeMs >= 1000)
+        {
+            timeSec += timeMs / 1000;
+            timeMs %= 1000;
+
+            // Update timer display if timeSec has a new full value
+            timeValueSprite.setValue(timeSec, 0b00000100, '0');
         }
 
         gameConsole.updateConsoleBuffer();
@@ -244,8 +279,10 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
     // Quit game when space bar is pressed
     while (true)
     {
-        if (GetAsyncKeyState(VK_SPACE) & maskMSBLSB)
+        if (GetAsyncKeyState(VK_SPACE) & keyMask)
         {
+            gamePanel.destroy();
+            textPanel.destroy();
             break;
         }
     }

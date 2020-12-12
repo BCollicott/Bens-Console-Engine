@@ -13,6 +13,12 @@ BCE_Panel::BCE_Panel(BCE_Space* space, SMALL_RECT writeRegion)
     clearPanelBuffer();
 };
 
+void BCE_Panel::destroy()
+{
+    free(panelBuffer);
+}
+
+
 void BCE_Panel::clearPanelBuffer()
 {
     for (int i = 0; i < panelSize.X * panelSize.Y; i++)
