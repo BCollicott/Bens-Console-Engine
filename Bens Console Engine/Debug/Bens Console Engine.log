@@ -1,4 +1,3 @@
-﻿  BCE_Test.cpp
-C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\BCE_Test.cpp(106): warning C4715: 'miscTest': not all control paths return a value
-C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\BCE_Test.cpp(289): warning C4715: 'snakeDemo': not all control paths return a value
+﻿  DungeonDemo.cpp
+C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\DungeonDemo.cpp(70,31): warning C4018: '<': signed/unsigned mismatch
   Bens Console Engine.vcxproj -> C:\Users\benja\source\repos\Bens Console Engine\Debug\Bens Console Engine.exe

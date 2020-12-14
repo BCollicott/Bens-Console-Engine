@@ -24,7 +24,10 @@
     <ClCompile Include="BCE_Panel.cpp" />
     <ClCompile Include="BCE_Space.cpp" />
     <ClCompile Include="BCE_Sprite.cpp" />
-    <ClCompile Include="BCE_Test.cpp" />
+    <ClCompile Include="BCE_Test.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="DungeonDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BCE_GameConsole.h" />

@@ -33,6 +33,11 @@ void BCE_Sprite::init(CHAR_INFO* string, COORD size)
 	BCE_Sprite::string = string;
 }
 
+void BCE_Sprite::freeMemory()
+{
+	free(string);
+}
+
 // Sets this sprite's string to a null-terminated string of normal ASCII characters w/ common attributes
 void BCE_Sprite::setText(char* string, WORD attributes, WCHAR padChar)
 {

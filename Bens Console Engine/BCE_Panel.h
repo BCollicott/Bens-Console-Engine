@@ -12,7 +12,8 @@ class BCE_Panel {
 
 	public:
 		BCE_Panel(BCE_Space* space, SMALL_RECT writeRegion);	// Constructor
-		void destroy();											// Free memory
+
+		void freeMemory();										// Free memory allocated within this object
 
 		void clearPanelBuffer();					// Fill panel buffer with spaces
 		void updatePanelBuffer();					// Fill panel buffer with visible GameObjects from space

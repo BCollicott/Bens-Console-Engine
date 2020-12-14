@@ -14,3 +14,8 @@ BCE_GameObject::BCE_GameObject(COORD pos, BCE_Sprite* sprite)
 	BCE_GameObject::size = sprite->size;
 	BCE_GameObject::sprite = sprite;
 }
+
+BCE_Sprite* BCE_GameObject::getSprite()
+{
+	return sprite;
+}

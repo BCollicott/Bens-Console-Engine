@@ -1,3 +1,5 @@
+
+
 #include <iostream>
 #include <queue>
 #include "BCE_GameConsole.h"
@@ -6,14 +8,17 @@
 #include "BCE_GameObject.h"
 #include "BCE_Sprite.h"
 
+#ifdef IGNORE
+
 int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch);
 int miscTest();
-
+/*
 int main()
 {
-    return snakeDemo(25, 20, false);
+    return dungeonDemo(40, 30, false);
+    //return snakeDemo(40, 30, false);
     //return miscTest();
-}
+}*/
 
 int miscTest()
 {
@@ -139,8 +144,7 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
     BCE_GameObject scoreLabelObject({ 0, 0 }, &scoreLabelSprite);
 
     // Value of score
-    BCE_Sprite scoreValueSprite({ consoleWidth / 2 - 1 + consoleWidth % 2 - scoreLabelSprite.size.X, 1 });
-    //scoreValueSprite.setValue(0, 0b00000100, '0');
+    BCE_Sprite scoreValueSprite({ 3, 1 });
     BCE_GameObject scoreValueObject({ scoreLabelObject.pos.X + scoreLabelObject.size.X, 0 }, &scoreValueSprite);
 
     // Label for time
@@ -149,7 +153,7 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
     BCE_GameObject timeLabelObject({ consoleWidth / 2 + consoleWidth % 2, 0 }, &timeLabelSprite);
 
     // Value of time
-    BCE_Sprite timeValueSprite({ consoleWidth / 2 - timeLabelSprite.size.X, 1 });
+    BCE_Sprite timeValueSprite({ 3, 1 });
     BCE_GameObject timeValueObject({ timeLabelObject.pos.X + timeLabelObject.size.X, 0 }, &timeValueSprite);
 
     // Space with gameplay objects
@@ -196,7 +200,7 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
 
     // Display intital score and time values
     scoreValueSprite.setValue(score, 0b00000010, '0');
-    timeValueSprite.setValue(timeSec, 0b00000100, '0');
+    timeValueSprite.setValue(timeSec, 0b00000100, ' ');
 
     // Main loop
     while (true) {
@@ -269,7 +273,7 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
             timeMs %= 1000;
 
             // Update timer display if timeSec has a new full value
-            timeValueSprite.setValue(timeSec, 0b00000100, '0');
+            timeValueSprite.setValue(timeSec, 0b00000100, ' ');
         }
 
         gameConsole.updateConsoleBuffer();
@@ -287,3 +291,5 @@ int snakeDemo(SHORT consoleWidth, SHORT consoleHeight, bool stretch)
         }
     }
 }
+
+#endif
