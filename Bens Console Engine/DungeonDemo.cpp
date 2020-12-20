@@ -12,7 +12,7 @@ void destroyFloor(BCE_Space* floor);
 int main()
 {
     // Define dimensions of console
-    const SHORT CONSOLE_WIDTH = 80;     // Number of colummns of characters
+    const SHORT CONSOLE_WIDTH = 60;     // Number of colummns of characters
     const SHORT CONSOLE_HEIGHT = 45;    // Number of rows of characters
 
     // Create game console
@@ -34,14 +34,23 @@ int main()
     // Test mobile object
     CHAR_INFO mobileString = { 'M', 0b00000100 };
     BCE_Sprite mobileSprite(&mobileString, { 1,1 });
-    BCE_GameObject mobileObject({ 6, -6 }, &mobileSprite);
+    BCE_GameObject mobileObject({ 6, -6 }, {2, 2}, &mobileSprite);
+    mobileObject.setColliderType(COLLIDER_RECT);
     floors[0]->addGameObject(&mobileObject, 2);
 
     // Test static object
     CHAR_INFO staticString[2] = { {'A', 0b00000010 }, {'B', 0b00000010 } };
     BCE_Sprite staticSprite(staticString, { 1, 2 });
-    BCE_GameObject staticObject({5, -5}, { 8, 9 }, &staticSprite);
+    BCE_GameObject staticObject({15, -5}, { 8, 9 }, &staticSprite);
+    staticObject.setColliderType(COLLIDER_RECT);
     floors[0]->addGameObject(&staticObject, 1);
+
+    // Test static object 2
+    CHAR_INFO staticString2[2] = { {'C', 0b00000010 }, {'D', 0b00000010 } };
+    BCE_Sprite staticSprite2(staticString2, { 1, 2 });
+    BCE_GameObject staticObject2({ 20, 0 }, { 8, 8 }, &staticSprite2);
+    staticObject2.setColliderType(COLLIDER_RECT);
+    floors[0]->addGameObject(&staticObject2, 1);
 
     // Create panels, text and stat panels sized to allow for borders
     SHORT textRows = 4; // Number of rows allocated to bottom text panel
@@ -58,12 +67,31 @@ int main()
         return 0;
     }
 
-    gameConsole.updateConsoleBuffer();
-
-    // Quit game when space bar is pressed
     SHORT keyMask = (SHORT)pow(2, (sizeof(SHORT) * 8) - 1) | (SHORT)1;   // Mask containing most sigificant bit and least significant bit of SHORT for reading key input
     while (true)
     {
+        COORD mobileDelta = { 0, 0 };
+        if (GetAsyncKeyState(VK_LEFT) & keyMask)
+        {
+            mobileDelta.X--;
+        }
+        if (GetAsyncKeyState(VK_RIGHT) & keyMask)
+        {
+            mobileDelta.X++;
+        }
+        if (GetAsyncKeyState(VK_UP) & keyMask)
+        {
+            mobileDelta.Y++;
+        }
+        if (GetAsyncKeyState(VK_DOWN) & keyMask)
+        {
+            mobileDelta.Y--;
+        }
+
+        // Detect collisions and modify mobileDelta before applying transformation
+        floors[0]->detectCollision(&mobileObject, &mobileDelta);
+        mobileObject.transate(mobileDelta);
+
         if (GetAsyncKeyState(VK_SPACE) & keyMask)
         {
             // Free memory for all floors
@@ -79,30 +107,56 @@ int main()
             
             break;
         }
+
+        gamePanel.clearPanelBuffer();
+        gameConsole.updateConsoleBuffer();
+        Sleep(1000 / 10);
     }
 }
 
 BCE_Space* createFloor(SHORT numRooms)
 {
-    BCE_Space* newFloor = new BCE_Space(3);   // New floor being generated w/ layers for background, statics, and mobiles
+    BCE_Space* newFloor = new BCE_Space(3);   // New floor being generated w/ layers for background, statics, and mobiles    std::vector<SMALL_RECT> rooms;  // Contains dimensions of all rooms
 
-    CHAR_INFO* floorChar = (CHAR_INFO*)malloc(sizeof(CHAR_INFO));
-    floorChar[0] = { 'F', 0b00000111 };                             // Simple 1x1 repeating sprite to indicate floor background
-    BCE_Sprite* floorSprite = new BCE_Sprite(floorChar, {1, 1});
-    BCE_GameObject* floorObject = new BCE_GameObject({ 0, 0 }, { 50, 50 }, floorSprite);
+    CHAR_INFO* roomChar = (CHAR_INFO*)malloc(sizeof(CHAR_INFO));
+    roomChar[0] = { ' ', 0b01000000 };
+    BCE_Sprite* roomSprite = new BCE_Sprite(roomChar, { 1, 1 });
+    BCE_GameObject* roomObject = new BCE_GameObject({ 2, -3 }, {10, 7}, roomSprite);
+    roomObject->setColliderType(COLLIDER_MASK);
 
-    newFloor->addGameObject(floorObject, 0);
+    // Give roomObject a mask to show only walls/perimeter
+    roomObject->addMask(false);
+    COORD roomSize = roomObject->getSize();
+    for (SHORT x = 0; x < roomSize.X; x++)
+    {
+        for (SHORT y = 0; y < roomSize.Y; y++)
+        {
+            if (y == 0 || y == roomSize.Y - 1 || x == 0 || x == roomSize.X - 1)
+            {
+                roomObject->setMaskBit(x, y, true);
+            }
+        }
+    }
+
+    newFloor->addGameObject(roomObject, 0);
 
     return newFloor;
 }
 
 void destroyFloor(BCE_Space* floor)
 {
-    BCE_GameObject* floorObject = floor->getLayer(0)[0];    // Only GameObject in background layer is the floor itself, which is unique to this space
+    // Free memory for rooms
+    for (int r = 0; r < floor->getLayer(0).size(); r++)
+    {
+        BCE_GameObject* roomObject = floor->getLayer(0)[0];    // Room objects are unique to this space
 
-    // Free memory for sprite's string and delete sprite itself, as it is unique to floorObject
-    floorObject->getSprite()->freeMemory();
-    delete(floorObject->getSprite());
+        // Free memory for sprite's string and delete sprite itself, as it is unique to roomObject
+        roomObject->getSprite()->freeMemory();
+        delete(roomObject->getSprite());
+
+        // Free memory for roomObject's mask
+        roomObject->freeMask();  
+    }
 
     // Delete floor object itself
     floor->freeMemory();

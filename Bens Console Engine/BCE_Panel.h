@@ -17,8 +17,8 @@ class BCE_Panel {
 
 		void clearPanelBuffer();					// Fill panel buffer with spaces
 		void updatePanelBuffer();					// Fill panel buffer with visible GameObjects from space
-		COORD spaceToBufferCoord(COORD spaceCoord);	// Convert a coordinate in space to its coordiantes in this panel's buffer
-		int spaceToBufferIndex(COORD spaceCoord);	// Convert a coordinate in space to its index in this panel's buffer
+		COORD spaceCoordToBufferCoord(COORD spaceCoord);	// Convert a coordinate in space to its coordiantes in this panel's buffer
+		int spaceCoordToBufferIndex(COORD spaceCoord);	// Convert a coordinate in space to its index in this panel's buffer
 
 		CHAR_INFO* getPanelBuffer();	// Get panel buffer
 		SMALL_RECT getWriteRegion();	// Get region that panel is drawn to in buffer

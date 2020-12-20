@@ -38,23 +38,31 @@ void BCE_Panel::updatePanelBuffer()
         for (int g = 0; g < layer.size(); g++)
         {
             BCE_GameObject* gameObject = layer[g]; // Pointer to next GameObject to be drawn to buffer
+            COORD gameObjectPos = gameObject->getPos();
+            COORD gameObjectSize = gameObject->getSize();
 
             // Draw GameObject if it is visible within the panel according to its coordinates and the panel's position in the space
-            if (gameObject->pos.X + gameObject->size.X - 1 >= posInSpace.X && gameObject->pos.Y - (gameObject->size.Y - 1) <= posInSpace.Y && gameObject->pos.X < posInSpace.X + panelSize.X && gameObject->pos.Y > posInSpace.Y - panelSize.Y)
+            if (gameObjectPos.X + gameObjectSize.X - 1 >= posInSpace.X && gameObjectPos.Y - (gameObjectSize.Y - 1) <= posInSpace.Y && gameObjectPos.X < posInSpace.X + panelSize.X && gameObjectPos.Y > posInSpace.Y - panelSize.Y)
             {
                 // Position object is drawn to in y-down space relative to panel
-                COORD panelSpace = spaceToBufferCoord(gameObject->pos);
+                COORD panelSpace = spaceCoordToBufferCoord(gameObjectPos);
 
                 BCE_Sprite* objectSprite = gameObject->getSprite();   // Sprite of visible GameObject to be drawn
+                BYTE maskByte = (BYTE)1;
 
                 // Draw sprite to panel buffer according to bounds of gameObject
-                for (int r = 0; r < gameObject->size.Y; r++) {
-                    for (int c = 0; c < gameObject->size.X; c++) {
+                for (int x = 0; x < gameObjectSize.X; x++) {
+                    for (int y = 0; y < gameObjectSize.Y; y++) {
 
-                        // Add character from sprite coordinates if it is visible within the panel
-                        if (gameObject->pos.X + c >= posInSpace.X && gameObject->pos.Y - r <= posInSpace.Y && gameObject->pos.X + c< posInSpace.X + panelSize.X && gameObject->pos.Y - r > posInSpace.Y - panelSize.Y)
+                        // Draw character if its corresponding bit in the mask is 1, or there is no mask
+                        if (gameObject->getMaskBit(x, y))
                         {
-                            panelBuffer[panelSpace.X + c + (panelSpace.Y + r) * panelSize.X] = objectSprite->string[c % objectSprite->size.X + (r % objectSprite->size.Y) * objectSprite->size.X];
+
+                            // Add character from sprite coordinates if it is visible within the panel
+                            if (gameObjectPos.X + x >= posInSpace.X && gameObjectPos.Y - y <= posInSpace.Y && gameObjectPos.X + x < posInSpace.X + panelSize.X && gameObjectPos.Y - y > posInSpace.Y - panelSize.Y)
+                            {
+                                panelBuffer[panelSpace.X + x + (panelSpace.Y + y) * panelSize.X] = objectSprite->string[x % objectSprite->size.X + (y % objectSprite->size.Y) * objectSprite->size.X];
+                            }
                         }
                     }
                 }
@@ -64,14 +72,14 @@ void BCE_Panel::updatePanelBuffer()
     
 }
 
-COORD BCE_Panel::spaceToBufferCoord(COORD spaceCoord)
+COORD BCE_Panel::spaceCoordToBufferCoord(COORD spaceCoord)
 {
     return { spaceCoord.X - posInSpace.X, -1 * (spaceCoord.Y - posInSpace.Y) };
 }
 
-int BCE_Panel::spaceToBufferIndex(COORD spaceCoord)
+int BCE_Panel::spaceCoordToBufferIndex(COORD spaceCoord)
 {
-    COORD bufferCoord = spaceToBufferCoord(spaceCoord);
+    COORD bufferCoord = spaceCoordToBufferCoord(spaceCoord);
     return bufferCoord.X + bufferCoord.Y * panelSize.X;
 }
 
