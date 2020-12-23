@@ -17,7 +17,7 @@ int main()
 
     // Create game console
     BCE_GameConsole gameConsole(CONSOLE_WIDTH, CONSOLE_HEIGHT);
-    if (!gameConsole.show(true))
+    if (!gameConsole.show(TRUE))
     {
         std::cout << "Failed to show game console\n";
         return 0;
@@ -34,14 +34,17 @@ int main()
     // Test mobile object
     CHAR_INFO mobileString = { 'M', 0b00000100 };
     BCE_Sprite mobileSprite(&mobileString, { 1,1 });
-    BCE_GameObject mobileObject({ 6, -6 }, {2, 2}, &mobileSprite);
-    mobileObject.setColliderType(COLLIDER_RECT);
+    BCE_GameObject mobileObject({ 6, -6 }, {1, 6}, &mobileSprite);
+    mobileObject.setColliderType(COLLIDER_MASK);
+    mobileObject.addMask(FALSE);
+    mobileObject.setMaskBit(0, 0, TRUE);
+    mobileObject.setMaskBit(0, 5, TRUE);
     floors[0]->addGameObject(&mobileObject, 2);
 
     // Test static object
     CHAR_INFO staticString[2] = { {'A', 0b00000010 }, {'B', 0b00000010 } };
     BCE_Sprite staticSprite(staticString, { 1, 2 });
-    BCE_GameObject staticObject({15, -5}, { 8, 9 }, &staticSprite);
+    BCE_GameObject staticObject({15, -11}, { 8, 9 }, &staticSprite);
     staticObject.setColliderType(COLLIDER_RECT);
     floors[0]->addGameObject(&staticObject, 1);
 
@@ -59,11 +62,18 @@ int main()
     BCE_Panel statPanel(&statSpace, { CONSOLE_WIDTH - 1 - statCols, 1, CONSOLE_WIDTH - 2, textPanel.getWriteRegion().Top - 2 });
     BCE_Panel gamePanel(floors[0], {1, 1, statPanel.getWriteRegion().Left - 2, textPanel.getWriteRegion().Top - 2 });
     
-    // Add panels to gameConsole with solid white borders
-    CHAR_INFO borderChar = { ' ', 0b01110000 }; // Space w/ non-intense white background
-    if (!gameConsole.addPanel(&textPanel, &borderChar) || !gameConsole.addPanel(&statPanel, &borderChar) || !gameConsole.addPanel(&gamePanel, &borderChar))
+    // Add panels to gameConsole
+    if (!gameConsole.addPanel(&textPanel) || !gameConsole.addPanel(&statPanel) || !gameConsole.addPanel(&gamePanel))
     {
         std::cout << "Failed to add panel(s) to console\n";
+        return 0;
+    }
+
+    // Draw borders around all panels
+    CHAR_INFO borderChar = { ' ', 0b01110000 }; // Space w/ non-intense white background
+    if (!gameConsole.drawPanelBorder(&textPanel, &borderChar) || !gameConsole.drawPanelBorder(&statPanel, &borderChar) || !gameConsole.drawPanelBorder(&gamePanel, &borderChar))
+    {
+        std::cout << "Failed to draw panel border(s) to console\n";
         return 0;
     }
 
@@ -108,8 +118,14 @@ int main()
             break;
         }
 
-        gamePanel.clearPanelBuffer();
+        // Update game panel buffer, which requires clearing due to lack of background GameObject
+        gamePanel.clearBuffer();
+        gamePanel.updateBuffer();
+
+        // Update main console buffer
         gameConsole.updateConsoleBuffer();
+
+
         Sleep(1000 / 10);
     }
 }

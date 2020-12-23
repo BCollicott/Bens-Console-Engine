@@ -38,6 +38,11 @@ void BCE_Sprite::freeMemory()
 	free(string);
 }
 
+CHAR_INFO BCE_Sprite::getCharacter(COORD spriteCoord)
+{
+	return string[spriteCoord.X % size.X + (spriteCoord.Y % size.Y) * size.X];
+}
+
 // Sets this sprite's string to a null-terminated string of normal ASCII characters w/ common attributes
 void BCE_Sprite::setText(char* string, WORD attributes, WCHAR padChar)
 {
@@ -91,6 +96,7 @@ void BCE_Sprite::setValue(int value, WORD attributes, WCHAR padChar)
 	}
 }
 
-char* shortToChar(SHORT val) {
-	return NULL;
+COORD BCE_Sprite::getSize()
+{
+	return size;
 }

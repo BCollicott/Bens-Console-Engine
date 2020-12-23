@@ -1,3 +1,4 @@
+#include <iostream>
 #include <vector>
 #include "BCE_Space.h"
 
@@ -36,7 +37,7 @@ BOOL BCE_Space::addGameObject(BCE_GameObject* gameObject, SHORT layerNum)
 void BCE_Space::detectCollision(BCE_GameObject* gameObject, COORD* delta)
 {
 	// Only attempt to detect collision if gameObject has rectangle collisions
-	if (gameObject->getColliderType() == COLLIDER_RECT)
+	if (gameObject->getColliderType() != COLLIDER_NONE)
 	{
 
 		// Search for collision in each layer
@@ -57,17 +58,59 @@ void BCE_Space::detectCollision(BCE_GameObject* gameObject, COORD* delta)
 					// For GameObjects that do not have a mask, getMaskBit() always returns 1 for a coordinate that is within the the GameObject's bounds
 					// this causes termination after 1 iteration if both GameObjects do not have masks, but allows for collisions between objects of different collider types
 
-					BOOL detected = false;	// Used to break outer loops
+					SMALL_RECT overlap; // Overlapping region after movement along both axes, inclusive coordinates
+
+					// Initialize overlap as bounds of gameObject
+					overlap.Left = gameObject->getPos().X + delta->X;
+					overlap.Top = gameObject->getPos().Y + delta->Y;
+					overlap.Right = gameObject->getPos().X + gameObject->getSize().X + delta->X - 1;
+					overlap.Bottom = gameObject->getPos().Y - gameObject->getSize().Y + delta->Y + 1;
+
+					// Update bounds to those of otherObject if they are the actual constraints of the overlap
+					if (otherObject->getPos().X > overlap.Left)
+					{
+						overlap.Left = otherObject->getPos().X;
+					}
+					if (otherObject->getPos().Y < overlap.Top)
+					{
+						overlap.Top = otherObject->getPos().Y;
+					}
+					if (otherObject->getPos().X + otherObject->getSize().X - 1 < overlap.Right)
+					{
+						overlap.Right = otherObject->getPos().X + otherObject->getSize().X - 1;
+					}
+					if (otherObject->getPos().Y - otherObject->getSize().Y + 1 > overlap.Bottom)
+					{
+						overlap.Bottom = otherObject->getPos().Y - otherObject->getSize().Y + 1;
+					}
+
+					BOOL detected = FALSE;	// Used to break outer loops
 
 					// Detect collisions and modify delta for movement along X axis alone
-					for (int x = otherObject->spaceCoordToObjectCoord(gameObject->getPos()).X + delta->X; x < otherObject->spaceCoordToObjectCoord(gameObject->getPos()).X + gameObject->getSize().X + delta->X; x++)
+					for (SHORT x = overlap.Left; x <= overlap.Right; x++)
 					{
-						for (int y = otherObject->spaceCoordToObjectCoord(gameObject->getPos()).Y; y < otherObject->spaceCoordToObjectCoord(gameObject->getPos()).Y + gameObject->getSize().Y; y++)
+						for (SHORT y = overlap.Top - delta->Y; y >= overlap.Bottom - delta->Y; y--)
 						{
-							if (otherObject->getMaskBit(x, y) == 1)
+
+							if (gameObject->getMaskBit(gameObject->spaceCoordToObjectCoord({ x - delta->X, y })) == TRUE && otherObject->getMaskBit(otherObject->spaceCoordToObjectCoord({ x, y })) == TRUE)
 							{
+
+								// Update overlap region if its horizontal bounds were determines by now-nullified delta X value
+								if (overlap.Left == gameObject->getPos().X + delta->X)
+								{
+									overlap.Left -= delta->X;
+								}
+
+								if (overlap.Right == gameObject->getPos().X + gameObject->getSize().X + delta->X - 1)
+								{
+									overlap.Right -= delta->X;
+								}
+
+								// Nullify delta X value
 								delta->X = 0;
-								detected = true;
+
+								// Break inner and outer loop
+								detected = TRUE;
 								break;
 							}
 						}
@@ -78,17 +121,17 @@ void BCE_Space::detectCollision(BCE_GameObject* gameObject, COORD* delta)
 						}
 					}
 
-					detected = false;
+					detected = FALSE;
 
 					// Detect collisions and modify delta for movement along Y axis given allowed movement along X axis
-					for (int x = otherObject->spaceCoordToObjectCoord(gameObject->getPos()).X + delta->X; x < otherObject->spaceCoordToObjectCoord(gameObject->getPos()).X + gameObject->getSize().X + delta->X; x++)
+					for (SHORT x = overlap.Left; x <= overlap.Right; x++)
 					{
-						for (int y = otherObject->spaceCoordToObjectCoord(gameObject->getPos()).Y - delta->Y; y < otherObject->spaceCoordToObjectCoord(gameObject->getPos()).Y + gameObject->getSize().Y - delta->Y; y++)
+						for (SHORT y = overlap.Top; y >= overlap.Bottom; y--)
 						{
-							if (otherObject->getMaskBit(x, y) == 1)
+							if (gameObject->getMaskBit(gameObject->spaceCoordToObjectCoord({ x - delta->X, y - delta->Y })) == TRUE && otherObject->getMaskBit(otherObject->spaceCoordToObjectCoord({ x, y })) == TRUE)
 							{
 								delta->Y = 0;
-								detected = true;
+								detected = TRUE;
 								break;
 							}
 						}

@@ -1,3 +1,14 @@
-﻿  BCE_Space.cpp
-C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\BCE_Space.cpp(47,22): warning C4018: '<': signed/unsigned mismatch
+﻿  BCE_GameConsole.cpp
+C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\BCE_GameConsole.cpp(264,25): warning C4018: '<': signed/unsigned mismatch
+  BCE_GameObject.cpp
+C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\BCE_GameObject.cpp(25,23): warning C4553: '==': result of expression not used; did you intend '='?
+  BCE_Panel.cpp
+C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\BCE_Panel.cpp(42,29): warning C4018: '<': signed/unsigned mismatch
+  BCE_Space.cpp
+C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\BCE_Space.cpp(48,22): warning C4018: '<': signed/unsigned mismatch
+  BCE_Sprite.cpp
+  DungeonDemo.cpp
+C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\DungeonDemo.cpp(108,31): warning C4018: '<': signed/unsigned mismatch
+C:\Users\benja\source\repos\Bens Console Engine\Bens Console Engine\DungeonDemo.cpp(165,23): warning C4018: '<': signed/unsigned mismatch
+  Generating Code...
   Bens Console Engine.vcxproj -> C:\Users\benja\source\repos\Bens Console Engine\Debug\Bens Console Engine.exe

@@ -9,7 +9,7 @@ BCE_GameObject::BCE_GameObject(COORD pos)
 
 BCE_GameObject::BCE_GameObject(COORD pos, BCE_Sprite* sprite)
 {
-	init(pos, sprite->size, sprite);
+	init(pos, sprite->getSize(), sprite);
 }
 
 BCE_GameObject::BCE_GameObject(COORD pos, COORD size, BCE_Sprite* sprite)
@@ -90,9 +90,9 @@ COORD BCE_GameObject::getSize()
 	return size;
 }
 
-bool BCE_GameObject::getMaskBit(SHORT x, SHORT y)
+BOOL BCE_GameObject::getMaskBit(COORD maskCoord)
 {
-	if (x < 0 || y < 0 || x >= size.X || y >= size.Y)
+	if (maskCoord.X < 0 || maskCoord.Y < 0 || maskCoord.X >= size.X || maskCoord.Y >= size.Y)
 	{
 		return false;
 	}
@@ -102,7 +102,7 @@ bool BCE_GameObject::getMaskBit(SHORT x, SHORT y)
 	}
 	else
 	{
-		INT maskIndex = (x % size.X) + (y * size.X);	// Index of mask bit in mask byte array
+		INT maskIndex = (maskCoord.X % size.X) + (maskCoord.Y * size.X);	// Index of mask bit in mask byte array
 		return (mask[maskIndex / 8] & (BYTE)1<<(maskIndex % 8)) > 0;
 	}
 }

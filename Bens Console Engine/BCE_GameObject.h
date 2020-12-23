@@ -30,7 +30,7 @@ class BCE_GameObject {
 		COORD getPos();
 		COORD getSize();
 		BCE_Sprite* getSprite();
-		bool getMaskBit(SHORT col, SHORT row);
+		BOOL getMaskBit(COORD maskCoord);
 		BYTE getColliderType();
 
 		void setPos(COORD pos);

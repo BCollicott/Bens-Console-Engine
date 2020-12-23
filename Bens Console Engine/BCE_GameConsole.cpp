@@ -3,41 +3,53 @@
 #include "BCE_GameConsole.h"
 #include "BCE_Panel.h"
 
+// Constructor, set desired dimensions of console and mark console buffer as uninitialized
+// @param width Number of character columns
+// @param height Number of character rows
 BCE_GameConsole::BCE_GameConsole(short width, short height)
 {
-    consoleSize = { width, height };    // Dimensions of console window in number of rows/cols
-    consoleBuffer = CreateConsoleScreenBuffer(
+    BCE_GameConsole::consoleSize = { width, height };
+    BCE_GameConsole::consoleBuffer = INVALID_HANDLE_VALUE;
+};
+
+// Display console buffer in full screen, attempt to set font/console dimensions
+// @param stretch If True, characters will be stretched so entire screen is used
+// if False, characters will be largest possible square w/ buffer anchored to the left of the screen.
+// Stretching characters is more tolerant of different buffer dimensions
+// @return False if any error occured, likely due to invalid dimensions/stretch
+bool BCE_GameConsole::show(bool stretch)
+{
+    SMALL_RECT windowRect = { 0, 0, consoleSize.X - 1, consoleSize.Y - 1 };   // Coordnates of console window in characters, inclusive coordinates
+
+    // Attempt to screate screen buffer with read/write access and in text mode. Cannot be inherited by child processes
+    BCE_GameConsole::consoleBuffer = CreateConsoleScreenBuffer(
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL,
         CONSOLE_TEXTMODE_BUFFER,
         NULL);
-};
 
-bool BCE_GameConsole::show(bool stretchToFit)
-{
-    SMALL_RECT windowRect = { 0, 0, consoleSize.X - 1, consoleSize.Y - 1 };   // Coordnates of console window in characters, inclusive
-
-    // Check if screen buffer was successfully created in constructor
+    // Check if screen buffer was successfully created
     if (consoleBuffer == INVALID_HANDLE_VALUE) {
         std::cout << "Failed to create screen buffer\n";
         return false;
     }
 
-    // Set screen buffer to be console's active buffer
+    // Set console buffer as the active buffer
     if (!SetConsoleActiveScreenBuffer(consoleBuffer))
     {
         std::cout << "Failed to set active screen buffer\n";
         return false;
     }
 
-    // Set console to full screen
-    if (!SetConsoleDisplayMode(consoleBuffer, CONSOLE_FULLSCREEN_MODE, NULL))
+    // Set console to full screen so screen dimensions can be calculated
+    if (!SetConsoleDisplayMode(consoleBuffer, CONSOLE_FULLSCREEN_MODE, nullptr))
     {
         std::cout << "Failed to set console display mode\n";
         return false;
     }
 
+    // TODO: prompt user for desired font. FaceName all that matters, nFont/font index doesnt matter?
     // Create font info 
     // From https://stackoverflow.com/questions/35382432/how-to-change-the-console-font-size
     CONSOLE_FONT_INFOEX consoleFontInfo;
@@ -47,7 +59,7 @@ bool BCE_GameConsole::show(bool stretchToFit)
     consoleFontInfo.FontWeight = FW_NORMAL;
     wcscpy_s(consoleFontInfo.FaceName, L"Consolas");
 
-    // Set font size to be able to measure resolution of console/screen. 
+    // Set font size to 1x2 pixels for measuring screen resolution
     consoleFontInfo.dwFontSize.X = 1;
     consoleFontInfo.dwFontSize.Y = 2;
     if (!SetCurrentConsoleFontEx(consoleBuffer, true, &consoleFontInfo))
@@ -56,7 +68,8 @@ bool BCE_GameConsole::show(bool stretchToFit)
         return false;
     }
 
-    // Measure window/screen dimensions using 1x2 font size
+    // Measure screen resolution by getting largest possible console dimension in characters
+    // Using fullscreen and measurement font size
     COORD largestWindowSize = GetLargestConsoleWindowSize(consoleBuffer);
     if (largestWindowSize.X == 0 && largestWindowSize.Y == 0)
     {
@@ -64,28 +77,33 @@ bool BCE_GameConsole::show(bool stretchToFit)
         return false;
     }
 
-    // Calculate dimensions of fullscreen window in pixels
-    int screenX = largestWindowSize.X * consoleFontInfo.dwFontSize.X;
-    int screenY = largestWindowSize.Y * consoleFontInfo.dwFontSize.Y;
+    // Calculate dimensions of fullscreen window in pixels according to font size used for measurement
+    short screenX = largestWindowSize.X * consoleFontInfo.dwFontSize.X;
+    short screenY = largestWindowSize.Y * consoleFontInfo.dwFontSize.Y;
 
+    // Calculate font dimensions needed to fit correct number of characters on the screen according to console size
+    // Character height always proportional to screen height
     consoleFontInfo.dwFontSize.Y = screenY / consoleSize.Y;
-    if (stretchToFit)
+
+    // Character width is proportional to screen width if stretching
+    if (stretch)
     {
         consoleFontInfo.dwFontSize.X = screenX / consoleSize.X;
     }
     else
     {
+        // Character width should be equal to height for largest possible square dimensions if not stretching
         consoleFontInfo.dwFontSize.X = consoleFontInfo.dwFontSize.Y;
     }
 
-    // Set font to correct size to fit screen
+    // Set font to calculated size
     if (!SetCurrentConsoleFontEx(consoleBuffer, true, &consoleFontInfo))
     {
         std::cout << "Failed to set console font to correct size\n";
         return false;
     }
 
-    // Set size of window in characters to the dimenions allowed by buffer
+    // Set size of window in characters to dimensions according to consoleSize, after font has been finalized
     if (!SetConsoleWindowInfo(consoleBuffer, true, &windowRect))
     {
         std::cout << "Failed to set console window info\n";
@@ -107,13 +125,13 @@ bool BCE_GameConsole::show(bool stretchToFit)
         return false;
     }
 
-    // Set newly created and displayed screenbuffer as GameConsole's member
-    BCE_GameConsole::consoleBuffer = consoleBuffer;
-
     return true;
 };
 
-bool BCE_GameConsole::addPanel(BCE_Panel* panel, CHAR_INFO* borderChar)
+// Add a panel to this console and draw a border around it of a specified character
+// @param panel Panel to be added to console
+// @return False if panel is out of bounds
+bool BCE_GameConsole::addPanel(BCE_Panel* panel)
 {
     // Determine if panel fits within console
     SMALL_RECT panelWriteRegion = panel->getWriteRegion();
@@ -123,16 +141,32 @@ bool BCE_GameConsole::addPanel(BCE_Panel* panel, CHAR_INFO* borderChar)
         return false;
     }
 
-    // Draw border if requested
-    if (borderChar != NULL)
+    // Add panel to GameConsole's panel vector
+    panels.push_back(panel);
+
+    return true;
+}
+
+// Write characters to console buffer that form a border around a panel, not overlapping that panel's write region
+// if border will exceed console bounds, it will not be drawn, and will not create an error.
+// This method only needs to be called once, unless portion of the buffer containing border is drawn over or cleared somehow.
+// @param borderChar Character border will consist of
+// @return False if console buffer could not be written to or borderChar is NULL
+bool BCE_GameConsole::drawPanelBorder(BCE_Panel* panel, CHAR_INFO* borderChar)
+{
+    // Only attempt to draw border if character was provided
+    if (borderChar == nullptr)
     {
-        // Create arrays to represent horizontal and vertical border around panel
-        SHORT borderSizeX = panel->getPanelSize().X;        // Width is flush with panel region and can safely drawn first
-        SHORT borderSizeY = panel->getPanelSize().Y + 2;    // Height contains corners and must be shortened before drawing if top/bottom are out of bounds
-        CHAR_INFO* borderStr;                               // String containing borderChar for drawing borders
+        return false;
+    }
+    else
+    {
+        // Determine dimensions of border, outside of panel
+        short borderSizeX = panel->getSize().X;        // Width is flush with panel region and can safely drawn first
+        short borderSizeY = panel->getSize().Y + 2;    // Height contains corners and must be shortened before drawing if top/bottom are out of bounds
 
         // Determine which border dimension is largest
-        SHORT largestBorderDimension;
+        short largestBorderDimension;
         if (borderSizeX > borderSizeY)
         {
             largestBorderDimension = borderSizeX;
@@ -142,18 +176,17 @@ bool BCE_GameConsole::addPanel(BCE_Panel* panel, CHAR_INFO* borderChar)
             largestBorderDimension = borderSizeY;
         }
 
-        // Set border string to length of larger dimension
-        borderStr = (CHAR_INFO*)malloc(sizeof(CHAR_INFO) * largestBorderDimension);
+        CHAR_INFO* borderStr = (CHAR_INFO*)malloc(sizeof(CHAR_INFO) * largestBorderDimension);  // String of length of largest dimension that will have to be drawn
 
         // Populate border string with border character
-        for (int i = 0; i < largestBorderDimension; i++)
+        for (short i = 0; i < largestBorderDimension; i++)
         {
             borderStr[i] = *borderChar;
         }
 
-        // Re-usable rectangles for drawing borders
-        SMALL_RECT borderXWriteRegion = panel->getWriteRegion();   
-        SMALL_RECT borderYWriteRegion = panel->getWriteRegion();
+        // Re-usable rectangles for drawing borders, initialized with dimensions of panel
+        SMALL_RECT borderXWriteRegion = panel->getWriteRegion();    // To become 1-characer tall rectangle
+        SMALL_RECT borderYWriteRegion = panel->getWriteRegion();    // To become 1-characer wide rectangle
 
         // Prepare horizontal write region for drawing top border
         borderXWriteRegion.Top--;
@@ -165,7 +198,7 @@ bool BCE_GameConsole::addPanel(BCE_Panel* panel, CHAR_INFO* borderChar)
         borderYWriteRegion.Left--;
         borderYWriteRegion.Right = borderYWriteRegion.Left;
 
-        // Attempt to draw top border
+        // Do not attempt to draw top border and shorten top of vertical region if top is out of bounds
         if (borderXWriteRegion.Top < 0)
         {
             borderYWriteRegion.Top++;
@@ -173,64 +206,67 @@ bool BCE_GameConsole::addPanel(BCE_Panel* panel, CHAR_INFO* borderChar)
         else if (!WriteConsoleOutput(consoleBuffer, borderStr, { borderSizeX, 1 }, { 0, 0 }, &borderXWriteRegion))
         {
             std::cout << "Failed to draw top panel border to console output\n";
+            return false;
         }
 
-        // Attempt to draw bottom border
-        borderXWriteRegion.Top += panel->getPanelSize().Y + 1;
+        // Adjust horizontal write region to bottom of panel
+        borderXWriteRegion.Top += panel->getSize().Y + 1;
         borderXWriteRegion.Bottom = borderXWriteRegion.Top;
+
+        // Do not attempt to draw bottom border and raise bottom of vertical region if bottom is out of bounds
         if (borderXWriteRegion.Top >= consoleSize.Y)
         {
             borderYWriteRegion.Bottom--;
         }
-        else if (!WriteConsoleOutput(consoleBuffer, borderStr, { borderSizeX + 2 , 1 }, { 0, 0 }, &borderXWriteRegion))
+        else if (!WriteConsoleOutput(consoleBuffer, borderStr, { borderSizeX , 1 }, { 0, 0 }, &borderXWriteRegion))
         {
             std::cout << "Failed to draw bottom panel border to console output\n";
+            return false;
         }
 
-        // Attempt to draw left border
+        // Do not attempt to draw left border if left is out of bounds
         if (!(borderYWriteRegion.Left < 0))
         {
             if (!WriteConsoleOutput(consoleBuffer, borderStr, { 1, borderSizeY }, { 0, 0 }, &borderYWriteRegion))
             {
                 std::cout << "Failed to draw top panel border to console output\n";
+                return false;
             }
         }
 
-        // Attempt to draw bottom border
-        borderYWriteRegion.Right += panel->getPanelSize().X + 1;
+        // Adjust vertical write region to right of panel
+        borderYWriteRegion.Right += panel->getSize().X + 1;
         borderYWriteRegion.Left = borderYWriteRegion.Right;
+
+        // Do not attempt to draw right border if left is out of bounds
         if (!(borderXWriteRegion.Right >= consoleSize.X))
         {
             if (!WriteConsoleOutput(consoleBuffer, borderStr, { 1, borderSizeY }, { 0, 0 }, &borderYWriteRegion))
             {
                 std::cout << "Failed to draw top panel border to console output\n";
+                return false;
             }
         }
 
+        // Free memory used for border string
         free(borderStr);
+
+        return true;
     }
-
-    // Add panel to GameConsole's panel vector
-    panels.push_back(panel);
-
-    return true;
 }
 
-/*
- * Draw all panels in BCE_GameConsole struct to the screen buffer/console window
- * @param gameConsole BCE_GameConsole struct whose panels are drawn
- * @return False if windows console write method fails
- */
+// Write contents to each panel's buffer to the console buffer.
+// Panels must update the contents of their buffer themselves, as it may not be necessary every frame
+// @return False if any panel buffer could not be written to console buffer
 bool BCE_GameConsole::updateConsoleBuffer()
 {
-    // Write all panels within gameConsole to output
-    for (int p = 0; p < panels.size(); p++)
+    // Write contents of all panel buffers to console buffer
+    for (short p = 0; p < panels.size(); p++)
     {
-        BCE_Panel* panel = panels[p];   // BCE_Panel from gameConsole
-        panel->updatePanelBuffer();
-        if (!WriteConsoleOutput(consoleBuffer, panel->getPanelBuffer(), panel->getPanelSize(), { 0, 0 }, &panel->getWriteRegion()))
+        if (!WriteConsoleOutput(consoleBuffer, panels[p]->getBuffer(), panels[p]->getSize(), { 0, 0 }, &panels[p]->getWriteRegion()))
         {
             std::cout << "Failed to write panel buffer to console output\n";
+            return false;
         }
     }
 
