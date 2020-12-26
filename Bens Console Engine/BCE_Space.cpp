@@ -2,16 +2,18 @@
 #include <vector>
 #include "BCE_Space.h"
 
-BCE_Space::BCE_Space(SHORT numLayers)
+// Constructor, set numLayers and allocate memory for all layer vectors
+BCE_Space::BCE_Space(short numLayers)
 {
 	BCE_Space::numLayers = numLayers;
 	for (int i = 0; i < numLayers; i++)
 	{
-		std::vector<BCE_GameObject*>* newVector = new std::vector<BCE_GameObject*>();
-		layers.push_back(newVector);
+		std::vector<BCE_GameObject*>* newLayer = new std::vector<BCE_GameObject*>();
+		layers.push_back(newLayer);
 	}
 }
 
+// Free memory allocated to layer vectors
 void BCE_Space::freeMemory()
 {
 	for (int l = 0; l < numLayers; l++)
@@ -20,134 +22,85 @@ void BCE_Space::freeMemory()
 	}
 }
 
-BOOL BCE_Space::addGameObject(BCE_GameObject* gameObject, SHORT layerNum)
+// Add a GameObject to a specified layer vector
+// @param gameObjet GameObject being added to the space
+// @param layerNum Number of layer which gameObject will be added to
+// @return False if layerNum is not a layer that exists in this space
+bool BCE_Space::addGameObject(BCE_GameObject* gameObject, short layerNum)
 {
 	// Add gameObject to appropriate layer, if it exists
 	if (0 <= layerNum && layerNum < numLayers)
 	{
 		layers[layerNum]->push_back(gameObject);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return true;
 	}
 }
 
-void BCE_Space::detectCollision(BCE_GameObject* gameObject, COORD* delta)
+// Detect if a collision has occures between 2 GameObjects without care for intruding region or mobile/static relationship
+// @param gameObject1 GameObject in collision
+// @param gameObject2 GameObject in collision
+// @return True if bounds (and a mask bit) of GameObjects overlap
+bool BCE_Space::detectCollision(BCE_GameObject* gameObject1, BCE_GameObject* gameObject2)
 {
-	// Only attempt to detect collision if gameObject has rectangle collisions
-	if (gameObject->getColliderType() != COLLIDER_NONE)
+	SMALL_RECT overlap;	// Region in space in which the two GameObjects overlap
+
+	// Initialize overlap as bounds of gameObject1
+	overlap.Left = gameObject1->getPos().X;
+	overlap.Top = gameObject1->getPos().Y;
+	overlap.Right = gameObject1->getPos().X + gameObject1->getSize().X - 1;
+	overlap.Bottom = gameObject1->getPos().Y - gameObject1->getSize().Y + 1;
+
+	// Update overlap bounds to those of mobileObject if they are the actual constraints of the overlap
+	if (gameObject2->getPos().X > overlap.Left)
 	{
+		overlap.Left = gameObject2->getPos().X;
+	}
+	if (gameObject2->getPos().Y < overlap.Top)
+	{
+		overlap.Top = gameObject2->getPos().Y;
+	}
+	if (gameObject2->getPos().X + gameObject2->getSize().X - 1 < overlap.Right)
+	{
+		overlap.Right = gameObject2->getPos().X + gameObject2->getSize().X - 1;
+	}
+	if (gameObject2->getPos().Y - gameObject2->getSize().Y + 1 > overlap.Bottom)
+	{
+		overlap.Bottom = gameObject2->getPos().Y - gameObject2->getSize().Y + 1;
+	}
 
-		// Search for collision in each layer
-		for (int l = 0; l < numLayers; l++)
+	// Return false if GameObjects are disjoint, without risking iteration through X dimension in loop below
+	if (overlap.Right < overlap.Left || overlap.Top < overlap.Bottom)
+	{
+		return false;
+	}
+
+	// If either GameObject has a mask, iteration through the overlapping region must occur
+	// if neither GameObject has a mask, true will be returned in first iteration
+	COORD overlapIterator;	// Coord in space for iterating through masks in overlapping region
+	for (overlapIterator.X = overlap.Left; overlapIterator.X <= overlap.Right; overlapIterator.X++)
+	{
+		for (overlapIterator.Y = overlap.Top; overlapIterator.Y >= overlap.Bottom; overlapIterator.Y--)
 		{
-
-			// Search for collision with each gameObject in layer
-			for (int g = 0; g < layers[l]->size() ; g++)
+			if (gameObject2->getMaskBit(gameObject2->spaceCoordToObjectCoord(overlapIterator)) == true && gameObject1->getMaskBit(gameObject1->spaceCoordToObjectCoord(overlapIterator)) == true)
 			{
-				BCE_GameObject* otherObject = (*layers[l])[g];	// Object being check for collision
-
-				// Other object must have collider, and must be different than gameObject
-				if (otherObject->getColliderType() != COLLIDER_NONE && otherObject != gameObject)
-				{
-
-					// Iterate through overlapping region in world space and detect collision if both objects have a 1 mask bit within the region
-					// If there is no overlapping region, no iteration will occur
-					// For GameObjects that do not have a mask, getMaskBit() always returns 1 for a coordinate that is within the the GameObject's bounds
-					// this causes termination after 1 iteration if both GameObjects do not have masks, but allows for collisions between objects of different collider types
-
-					SMALL_RECT overlap; // Overlapping region after movement along both axes, inclusive coordinates
-
-					// Initialize overlap as bounds of gameObject
-					overlap.Left = gameObject->getPos().X + delta->X;
-					overlap.Top = gameObject->getPos().Y + delta->Y;
-					overlap.Right = gameObject->getPos().X + gameObject->getSize().X + delta->X - 1;
-					overlap.Bottom = gameObject->getPos().Y - gameObject->getSize().Y + delta->Y + 1;
-
-					// Update bounds to those of otherObject if they are the actual constraints of the overlap
-					if (otherObject->getPos().X > overlap.Left)
-					{
-						overlap.Left = otherObject->getPos().X;
-					}
-					if (otherObject->getPos().Y < overlap.Top)
-					{
-						overlap.Top = otherObject->getPos().Y;
-					}
-					if (otherObject->getPos().X + otherObject->getSize().X - 1 < overlap.Right)
-					{
-						overlap.Right = otherObject->getPos().X + otherObject->getSize().X - 1;
-					}
-					if (otherObject->getPos().Y - otherObject->getSize().Y + 1 > overlap.Bottom)
-					{
-						overlap.Bottom = otherObject->getPos().Y - otherObject->getSize().Y + 1;
-					}
-
-					BOOL detected = FALSE;	// Used to break outer loops
-
-					// Detect collisions and modify delta for movement along X axis alone
-					for (SHORT x = overlap.Left; x <= overlap.Right; x++)
-					{
-						for (SHORT y = overlap.Top - delta->Y; y >= overlap.Bottom - delta->Y; y--)
-						{
-
-							if (gameObject->getMaskBit(gameObject->spaceCoordToObjectCoord({ x - delta->X, y })) == TRUE && otherObject->getMaskBit(otherObject->spaceCoordToObjectCoord({ x, y })) == TRUE)
-							{
-
-								// Update overlap region if its horizontal bounds were determines by now-nullified delta X value
-								if (overlap.Left == gameObject->getPos().X + delta->X)
-								{
-									overlap.Left -= delta->X;
-								}
-
-								if (overlap.Right == gameObject->getPos().X + gameObject->getSize().X + delta->X - 1)
-								{
-									overlap.Right -= delta->X;
-								}
-
-								// Nullify delta X value
-								delta->X = 0;
-
-								// Break inner and outer loop
-								detected = TRUE;
-								break;
-							}
-						}
-
-						if (detected)
-						{
-							break;
-						}
-					}
-
-					detected = FALSE;
-
-					// Detect collisions and modify delta for movement along Y axis given allowed movement along X axis
-					for (SHORT x = overlap.Left; x <= overlap.Right; x++)
-					{
-						for (SHORT y = overlap.Top; y >= overlap.Bottom; y--)
-						{
-							if (gameObject->getMaskBit(gameObject->spaceCoordToObjectCoord({ x - delta->X, y - delta->Y })) == TRUE && otherObject->getMaskBit(otherObject->spaceCoordToObjectCoord({ x, y })) == TRUE)
-							{
-								delta->Y = 0;
-								detected = TRUE;
-								break;
-							}
-						}
-					}
-				}
+				return true;
 			}
 		}
 	}
+
+	return false;
 }
 
-std::vector<BCE_GameObject*> BCE_Space::getLayer(SHORT layerNum)
+std::vector<BCE_GameObject*> BCE_Space::getLayer(short layerNum)
 {
 	return *layers[layerNum];
 }
 
-SHORT BCE_Space::getNumLayers()
+short BCE_Space::getNumLayers()
 {
 	return numLayers;
 }

@@ -4,7 +4,7 @@
 
 BCE_GameObject::BCE_GameObject(COORD pos)
 {
-	init(pos, { 0, 0 }, NULL);
+	init(pos, { 0, 0 }, nullptr);
 }
 
 BCE_GameObject::BCE_GameObject(COORD pos, BCE_Sprite* sprite)
@@ -22,7 +22,7 @@ void BCE_GameObject::init(COORD pos, COORD size, BCE_Sprite* sprite)
 	BCE_GameObject::pos = pos;
 	BCE_GameObject::size = size;
 	BCE_GameObject::sprite = sprite;
-	BCE_GameObject::mask == NULL;
+	BCE_GameObject::mask = nullptr;
 	BCE_GameObject::colliderType = COLLIDER_NONE;
 }
 
@@ -35,36 +35,41 @@ void BCE_GameObject::transate(COORD delta)
 void BCE_GameObject::addMask(bool init)
 {
 	// Free old mask if it exists
-	if (mask != NULL)
+	if (mask != nullptr)
 	{
 		free(mask);
 	}
 
 	// Determine number of bytes needed to store bitwise mask
-	SHORT numBytes = size.X * size.Y / 8;
+	short numBytes = size.X * size.Y / 8;
 	if (size.X * size.Y % 8 != 0)
 	{
 		numBytes++;
 	}
 
 	// Allocate memory for mask
-	mask = (BYTE*)malloc(sizeof(BYTE) * numBytes);
+	mask = (char*)malloc(sizeof(char) * numBytes);
 
 	// Set all mask bits to initial value
-	BYTE initialByte = 0;
+	char initialByte = 0;
 	if (init)
 	{
-		initialByte = MAXBYTE;
+		initialByte = 0xff;
 	}
-	for (int b = 0; b < numBytes; b++)
+	for (short b = 0; b < numBytes; b++)
 	{
 		mask[b] = initialByte;
 	}
 }
 
+bool BCE_GameObject::hasMask()
+{
+	return mask != nullptr;
+}
+
 void BCE_GameObject::freeMask()
 {
-	if (mask != NULL)
+	if (mask != nullptr)
 	{
 		free(mask);
 	}
@@ -90,19 +95,19 @@ COORD BCE_GameObject::getSize()
 	return size;
 }
 
-BOOL BCE_GameObject::getMaskBit(COORD maskCoord)
+bool BCE_GameObject::getMaskBit(COORD maskCoord)
 {
 	if (maskCoord.X < 0 || maskCoord.Y < 0 || maskCoord.X >= size.X || maskCoord.Y >= size.Y)
 	{
 		return false;
 	}
-	else if (mask == NULL)
+	else if (mask == nullptr)
 	{
 		return true;
 	}
 	else
 	{
-		INT maskIndex = (maskCoord.X % size.X) + (maskCoord.Y * size.X);	// Index of mask bit in mask byte array
+		int maskIndex = (maskCoord.X % size.X) + (maskCoord.Y * size.X);	// Index of mask bit in mask byte array
 		return (mask[maskIndex / 8] & (BYTE)1<<(maskIndex % 8)) > 0;
 	}
 }
@@ -112,7 +117,7 @@ BCE_Sprite* BCE_GameObject::getSprite()
 	return sprite;
 }
 
-BYTE BCE_GameObject::getColliderType()
+char BCE_GameObject::getColliderType()
 {
 	return colliderType;
 }
@@ -132,11 +137,11 @@ void BCE_GameObject::setSprite(BCE_Sprite* sprite)
 	BCE_GameObject::sprite = sprite;
 }
 
-void BCE_GameObject::setMaskBit(SHORT col, SHORT row, bool val)
+void BCE_GameObject::setMaskBit(short col, short row, bool val)
 {
 	if (mask != NULL)
 	{
-		INT maskIndex = (col % size.X) + (row * size.X);	// Index of mask bit in mask byte array
+		int maskIndex = (col % size.X) + (row * size.X);	// Index of mask bit in mask byte array
 
 		// Set bit to 0
 		mask[maskIndex / 8] = mask[maskIndex / 8] & ~((BYTE)1 << (maskIndex % 8));
@@ -150,7 +155,7 @@ void BCE_GameObject::setMaskBit(SHORT col, SHORT row, bool val)
 	}
 }
 
-void BCE_GameObject::setColliderType(BYTE colliderType)
+void BCE_GameObject::setColliderType(char colliderType)
 {
 	BCE_GameObject::colliderType = colliderType;
 }

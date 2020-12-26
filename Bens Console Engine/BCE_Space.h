@@ -2,21 +2,23 @@
 #include <vector>
 #include "BCE_GameObject.h"
 
-// Y-Up space containing GameObjects
+#define NO_COLLISION {0, 0, -1, -1}	// Returned by detectCollision when its parameters are not overlapping
+
+// Y-Up space containing GameObjects in 1 or more layers
 class BCE_Space {
 	std::vector<std::vector<BCE_GameObject*>*> layers;	// Layers of GameObjects in this space. layers[0] if bottom, layers[size-1] is top
-	std::vector<BCE_GameObject*> colliders;				// All GameObjects in this space which can collide with eachother
-	SHORT numLayers;
+	short numLayers;									// Number of layers of GameObjects contained in this space
 
 	public:
-		BCE_Space(SHORT numLayers);
+		BCE_Space(short numLayers);	// Constructor
 
-		void freeMemory();
+		void freeMemory();			// Free memory allocated by this class
 
-		BOOL addGameObject(BCE_GameObject* gameObject, SHORT layerNum);
-		void detectCollision(BCE_GameObject* gameObject, COORD* delta);
+		bool addGameObject(BCE_GameObject* gameObject, short layerNum);							// Add a GameObject to this space
+		bool detectCollision(BCE_GameObject* mobileObject, BCE_GameObject* staticObject);	// Detect if 2 GameObjects are colliding and return overlap region
+		bool detectCollision(BCE_GameObject* mobileObject, BCE_GameObject* staticObject, SMALL_RECT* overlap);
 
-		std::vector<BCE_GameObject*> getLayer(SHORT layerNum);
-		SHORT getNumLayers();
+		std::vector<BCE_GameObject*> getLayer(short layerNum);							// Get a layer vector
+		short getNumLayers();															// Get number of layers
 
 };

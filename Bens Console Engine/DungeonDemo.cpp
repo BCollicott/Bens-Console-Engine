@@ -34,11 +34,11 @@ int main()
     // Test mobile object
     CHAR_INFO mobileString = { 'M', 0b00000100 };
     BCE_Sprite mobileSprite(&mobileString, { 1,1 });
-    BCE_GameObject mobileObject({ 6, -6 }, {1, 6}, &mobileSprite);
-    mobileObject.setColliderType(COLLIDER_MASK);
-    mobileObject.addMask(FALSE);
-    mobileObject.setMaskBit(0, 0, TRUE);
-    mobileObject.setMaskBit(0, 5, TRUE);
+    BCE_GameObject mobileObject({ 6, -12 }, {2, 2}, &mobileSprite);
+    //mobileObject.setColliderType(COLLIDER_MASK);
+    //mobileObject.addMask(FALSE);
+    //mobileObject.setMaskBit(0, 0, TRUE);
+    //mobileObject.setMaskBit(0, 5, TRUE);
     floors[0]->addGameObject(&mobileObject, 2);
 
     // Test static object
@@ -83,25 +83,49 @@ int main()
         COORD mobileDelta = { 0, 0 };
         if (GetAsyncKeyState(VK_LEFT) & keyMask)
         {
-            mobileDelta.X--;
+            mobileDelta.X -= 2;
         }
         if (GetAsyncKeyState(VK_RIGHT) & keyMask)
         {
-            mobileDelta.X++;
+            mobileDelta.X += 2;
         }
         if (GetAsyncKeyState(VK_UP) & keyMask)
         {
-            mobileDelta.Y++;
+            mobileDelta.Y += 2;
         }
         if (GetAsyncKeyState(VK_DOWN) & keyMask)
         {
-            mobileDelta.Y--;
+            mobileDelta.Y -= 2;
         }
 
-        // Detect collisions and modify mobileDelta before applying transformation
-        floors[0]->detectCollision(&mobileObject, &mobileDelta);
         mobileObject.transate(mobileDelta);
 
+        // Apply transformation if no collisions are detected with any other GameObject in any layer
+        bool collision = false;
+        for (short f = 0; f < floors[0]->getNumLayers(); f++)
+        {
+            for (short o = 0; o < floors[0]->getLayer(f).size(); o++)
+            {
+                if (floors[0]->getLayer(f)[o] != &mobileObject)
+                {
+                    if (floors[0]->detectCollision(&mobileObject, floors[0]->getLayer(f)[o]))
+                    {
+                        collision = true;
+                        break;
+                    }
+                }
+            }
+            if (collision)
+            {
+                break;
+            }
+        }
+
+        if (collision)
+        {
+            mobileObject.transate({-1 * mobileDelta.X, -1 * mobileDelta.Y});
+        }
+        
         if (GetAsyncKeyState(VK_SPACE) & keyMask)
         {
             // Free memory for all floors
