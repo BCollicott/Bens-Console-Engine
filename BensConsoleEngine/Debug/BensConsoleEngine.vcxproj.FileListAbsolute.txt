@@ -1,0 +1,2 @@
+C:\Users\benja\source\repos\Bens Console Engine\Debug\BensConsoleEngine.pdb
+C:\Users\benja\source\repos\Bens Console Engine\BensConsoleEngine\Debug\BensConsoleEngine.pdb

@@ -2,8 +2,8 @@
 #include "CppUnitTest.h"
 
 #include <Windows.h>
-#include "../Bens Console Engine/BCE_Space.h"
-#include "../Bens Console Engine/BCE_GameObject.h"
+#include "BCE_Space.h"
+#include "BCE_GameObject.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
