@@ -1,10 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "BCE_GameConsole.h"
-#include "BCE_Panel.h"
-#include "BCE_Space.h"
-#include "BCE_GameObject.h"
-#include "BCE_Sprite.h"
+#include "BCE.h"
 
 BCE_Space* createFloor(SHORT numRooms);
 void destroyFloor(BCE_Space* floor);
@@ -48,12 +44,16 @@ int main()
     staticObject.setColliderType(COLLIDER_RECT);
     floors[0]->addGameObject(&staticObject, 1);
 
-    // Test static object 2
-    CHAR_INFO staticString2[2] = { {'C', 0b00000010 }, {'D', 0b00000010 } };
-    BCE_Sprite staticSprite2(staticString2, { 1, 2 });
-    BCE_GameObject staticObject2({ 20, 0 }, { 8, 8 }, &staticSprite2);
-    staticObject2.setColliderType(COLLIDER_RECT);
-    floors[0]->addGameObject(&staticObject2, 1);
+    // Test object from file
+    BCE_Sprite* fileSprite = BCE_Sprite::deserialize("palettesprite");
+    if (fileSprite == nullptr)
+    {
+        std::cout << "Failed to load sprite from file\n";
+        return 0;
+    }
+    BCE_GameObject fileObject({ 20, 0 }, fileSprite);
+    fileObject.setColliderType(COLLIDER_RECT);
+    floors[0]->addGameObject(&fileObject, 1);
 
     // Create panels, text and stat panels sized to allow for borders
     SHORT textRows = 4; // Number of rows allocated to bottom text panel
@@ -128,6 +128,10 @@ int main()
         
         if (GetAsyncKeyState(VK_SPACE) & keyMask)
         {
+            // Free memort for sprite loaded from file
+            fileSprite->freeMemory();
+            delete(fileSprite);
+
             // Free memory for all floors
             for (int f = 0; f < floors.size(); f++)
             {
@@ -147,7 +151,7 @@ int main()
         gamePanel.updateBuffer();
 
         // Update main console buffer
-        gameConsole.updateConsoleBuffer();
+        gameConsole.updateBuffer();
 
 
         Sleep(1000 / 10);

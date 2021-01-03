@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BCE.h" />
     <ClInclude Include="BCE_GameConsole.h" />
     <ClInclude Include="BCE_GameObject.h" />
     <ClInclude Include="BCE_Mask.h" />

@@ -5,7 +5,7 @@
 
 // Fullscreen console of variable dimension for displaying text within multiple panels. 
 class BCE_GameConsole {
-	HANDLE consoleBuffer;			// Windows handle to console screen buffer
+	HANDLE buffer;			// Windows handle to console screen buffer
 	COORD consoleSize;				// Dimensions of buffer/window in characters
 	std::vector<BCE_Panel*> panels;	// Pointers to panels contained in this console
 
@@ -15,6 +15,6 @@ class BCE_GameConsole {
 		bool show(bool stretch);										// Attempt to create buffer and display on screen
 		bool addPanel(BCE_Panel* panel);								// Add panel to this console
 		bool drawPanelBorder(BCE_Panel* panel, CHAR_INFO* borderChar);	// Draw a border around a panel
-		bool updateConsoleBuffer();										// Update console buffer
+		bool updateBuffer();										// Update console buffer
 		
 };

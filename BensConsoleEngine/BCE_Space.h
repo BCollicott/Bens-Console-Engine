@@ -16,7 +16,6 @@ class BCE_Space {
 
 		bool addGameObject(BCE_GameObject* gameObject, short layerNum);							// Add a GameObject to this space
 		bool detectCollision(BCE_GameObject* mobileObject, BCE_GameObject* staticObject);	// Detect if 2 GameObjects are colliding and return overlap region
-		bool detectCollision(BCE_GameObject* mobileObject, BCE_GameObject* staticObject, SMALL_RECT* overlap);
 
 		std::vector<BCE_GameObject*> getLayer(short layerNum);							// Get a layer vector
 		short getNumLayers();															// Get number of layers

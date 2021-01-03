@@ -1,6 +1,9 @@
 #include <iostream>
+#include <fstream>
 #include <Windows.h>
 #include "BCE_Sprite.h"
+
+using namespace std;
 
 BCE_Sprite::BCE_Sprite()
 {
@@ -38,9 +41,69 @@ void BCE_Sprite::freeMemory()
 	free(string);
 }
 
+// Serialize sprite to a file containing size and contents of string
+// @param path Name and path of file to be created or overwritten
+// @return True if file was successfully opened/created and written to
+bool BCE_Sprite::serialize(const char* path)
+{
+	ofstream spriteFile(path, ios::trunc | ios::binary);	// Binary output file stream, creates new file or deletes existing contents
+
+	if (spriteFile.is_open())
+	{
+		// Write X and Y dimensions
+		spriteFile.write((char*)&size, sizeof(COORD));
+
+		// Write contents of string
+		spriteFile.write((char*)string, (short)sizeof(CHAR_INFO) * size.X * size.Y);
+
+		spriteFile.close();
+
+		return true;
+	}
+
+	return false;
+}
+
+// Deserialize/read sprite data from a file and create a new sprite object using it
+// @param path Name and path of file used to create new sprite
+// @return Pointer to new sprite, or nullptr if file could not be opened
+BCE_Sprite* BCE_Sprite::deserialize(const char* path)
+{
+	ifstream spriteFile(path, ios::binary);	// Binary input files stream
+	BCE_Sprite* newSprite = nullptr;		// Sprite being created from file
+
+	if (spriteFile.is_open())
+	{
+
+		// Read X and Y dimensions to temporary COORD struct
+		COORD size = { 0, 0 };
+		spriteFile.read((char*)&size, sizeof(COORD));
+
+		// Create sprite object to allocate correct amount of string memory
+		newSprite = new BCE_Sprite(size);
+
+		// Read contents of string to new object
+		spriteFile.read((char*)newSprite->getString(), (short)sizeof(CHAR_INFO) * size.X * size.Y);
+
+		spriteFile.close();
+	}
+
+	return newSprite;
+}
+
+CHAR_INFO* BCE_Sprite::getString()
+{
+	return string;
+}
+
 CHAR_INFO BCE_Sprite::getCharacter(COORD spriteCoord)
 {
 	return string[spriteCoord.X % size.X + (spriteCoord.Y % size.Y) * size.X];
+}
+
+void BCE_Sprite::setCharacter(COORD spriteCoord, CHAR_INFO chraracter)
+{
+	string[spriteCoord.X % size.X + (spriteCoord.Y % size.Y) * size.X] = chraracter;
 }
 
 // Sets this sprite's string to a null-terminated string of normal ASCII characters w/ common attributes

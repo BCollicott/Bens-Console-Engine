@@ -1,1 +1,5 @@
-﻿  DungeonDemo.vcxproj -> C:\Users\benja\source\repos\Bens Console Engine\Debug\DungeonDemo.exe
+﻿  DungeonDemo.cpp
+C:\Users\benja\source\repos\Bens Console Engine\DungeonDemo\DungeonDemo.cpp(107,33): warning C4018: '<': signed/unsigned mismatch
+C:\Users\benja\source\repos\Bens Console Engine\DungeonDemo\DungeonDemo.cpp(136,31): warning C4018: '<': signed/unsigned mismatch
+C:\Users\benja\source\repos\Bens Console Engine\DungeonDemo\DungeonDemo.cpp(194,23): warning C4018: '<': signed/unsigned mismatch
+  DungeonDemo.vcxproj -> C:\Users\benja\source\repos\Bens Console Engine\Debug\DungeonDemo.exe

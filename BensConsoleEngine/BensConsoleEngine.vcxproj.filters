@@ -33,6 +33,9 @@
     <ClInclude Include="BCE_Sprite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BCE.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BCE_GameConsole.cpp">
