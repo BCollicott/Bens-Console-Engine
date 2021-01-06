@@ -54,7 +54,7 @@ bool BCE_Sprite::serialize(const char* path)
 		spriteFile.write((char*)&size, sizeof(COORD));
 
 		// Write contents of string
-		spriteFile.write((char*)string, (short)sizeof(CHAR_INFO) * size.X * size.Y);
+		spriteFile.write((char*)string, ((short)sizeof(CHAR_INFO)) * size.X * size.Y);
 
 		spriteFile.close();
 
@@ -83,7 +83,7 @@ BCE_Sprite* BCE_Sprite::deserialize(const char* path)
 		newSprite = new BCE_Sprite(size);
 
 		// Read contents of string to new object
-		spriteFile.read((char*)newSprite->getString(), (short)sizeof(CHAR_INFO) * size.X * size.Y);
+		spriteFile.read((char*)newSprite->getString(), ((short)sizeof(CHAR_INFO)) * size.X * size.Y);
 
 		spriteFile.close();
 	}

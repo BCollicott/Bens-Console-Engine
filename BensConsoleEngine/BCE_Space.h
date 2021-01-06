@@ -14,10 +14,10 @@ class BCE_Space {
 
 		void freeMemory();			// Free memory allocated by this class
 
-		bool addGameObject(BCE_GameObject* gameObject, short layerNum);							// Add a GameObject to this space
-		bool detectCollision(BCE_GameObject* mobileObject, BCE_GameObject* staticObject);	// Detect if 2 GameObjects are colliding and return overlap region
-
-		std::vector<BCE_GameObject*> getLayer(short layerNum);							// Get a layer vector
-		short getNumLayers();															// Get number of layers
+		bool addGameObject(BCE_GameObject* gameObject, short layerNum);						// Add a GameObject to this space
+		bool detectCollision(BCE_GameObject* mobileObject, BCE_GameObject* staticObject);	// Detect if 2 GameObjects are colliding
+			
+		std::vector<BCE_GameObject*> getLayer(short layerNum);								// Get a layer vector
+		short getNumLayers();																// Get number of layers
 
 };
