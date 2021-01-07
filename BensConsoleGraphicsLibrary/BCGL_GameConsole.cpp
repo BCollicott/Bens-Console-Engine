@@ -152,7 +152,7 @@ bool BCGL_GameConsole::addPanel(BCGL_Panel* panel)
 // This method only needs to be called once, unless portion of the buffer containing border is drawn over or cleared somehow.
 // @param borderChar Character border will consist of
 // @return False if console buffer could not be written to or borderChar is NULL
-bool BCGL_GameConsole::drawPanelBorder(BCGL_Panel* panel, CHAR_INFO* borderChar)
+bool BCGL_GameConsole::drawPanelBorder(BCGL_Panel* panel, BCGL_Char* borderChar)
 {
     // Only attempt to draw border if character was provided
     if (borderChar == nullptr)
@@ -178,10 +178,10 @@ bool BCGL_GameConsole::drawPanelBorder(BCGL_Panel* panel, CHAR_INFO* borderChar)
 
         CHAR_INFO* borderStr = (CHAR_INFO*)malloc(sizeof(CHAR_INFO) * largestBorderDimension);  // String of length of largest dimension that will have to be drawn
 
-        // Populate border string with border character
+        // Populate border string with border character converted to CHAR_INFO
         for (short i = 0; i < largestBorderDimension; i++)
         {
-            borderStr[i] = *borderChar;
+            borderStr[i] = { CHARACTER_SET[borderChar->code], borderChar->color };
         }
 
         // Re-usable rectangles for drawing borders, initialized with dimensions of panel

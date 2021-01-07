@@ -14,6 +14,12 @@ BCGL_Panel::BCGL_Panel(BCGL_Space* space, SMALL_RECT writeRegion)
     clearBuffer();
 };
 
+// Convert BCGL_Char to Windows CHAR_INFO struct and add it to panel buffer
+void BCGL_Panel::setBufferChar(COORD panelCoord, BCGL_Char bufferChar)
+{
+    buffer[panelCoord.X + panelCoord.Y * size.X] = { CHARACTER_SET[bufferChar.code], bufferChar.color };
+}
+
 // Free memory allocated by class
 void BCGL_Panel::freeMemory()
 {
@@ -99,11 +105,6 @@ SMALL_RECT BCGL_Panel::getWriteRegion()
 COORD BCGL_Panel::getSize()
 {
     return size;
-}
-
-void BCGL_Panel::setBufferChar(COORD panelCoord, CHAR_INFO bufferChar)
-{
-    buffer[panelCoord.X + panelCoord.Y * size.X] = bufferChar;
 }
 
 void BCGL_Panel::setSpace(BCGL_Space* space)

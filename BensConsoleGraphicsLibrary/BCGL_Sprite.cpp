@@ -13,24 +13,24 @@ BCGL_Sprite::BCGL_Sprite()
 BCGL_Sprite::BCGL_Sprite(COORD size)
 {
 	// Allocate memory for string based on size
-	init((CHAR_INFO*)malloc(sizeof(CHAR_INFO) * size.X * size.Y), size);
+	init((BCGL_Char*)malloc(sizeof(BCGL_Char) * size.X * size.Y), size);
 }
 
-BCGL_Sprite::BCGL_Sprite(CHAR_INFO* string, COORD size)
+BCGL_Sprite::BCGL_Sprite(BCGL_Char* string, COORD size)
 {
 	init(string, size);
 }
 
-BCGL_Sprite::BCGL_Sprite(char* string, WORD attributes, COORD size)
+BCGL_Sprite::BCGL_Sprite(char* string, unsigned char color, COORD size)
 {
 	// Allocate memory for string based on size
-	init((CHAR_INFO*)malloc(sizeof(CHAR_INFO) * size.X * size.Y), size);
+	init((BCGL_Char*)malloc(sizeof(BCGL_Char) * size.X * size.Y), size);
 
 	// Set text within allocated string memory
-	setText(string, attributes, ' ');
+	setText(string, color, { ' ', 0 });
 }
 
-void BCGL_Sprite::init(CHAR_INFO* string, COORD size)
+void BCGL_Sprite::init(BCGL_Char* string, COORD size)
 {
 	BCGL_Sprite::size = size;
 	BCGL_Sprite::string = string;
@@ -54,7 +54,7 @@ bool BCGL_Sprite::serialize(const char* path)
 		spriteFile.write((char*)&size, sizeof(COORD));
 
 		// Write contents of string
-		spriteFile.write((char*)string, ((short)sizeof(CHAR_INFO)) * size.X * size.Y);
+		spriteFile.write((char*)string, ((short)sizeof(BCGL_Char)) * size.X * size.Y);
 
 		spriteFile.close();
 
@@ -83,7 +83,7 @@ BCGL_Sprite* BCGL_Sprite::deserialize(const char* path)
 		newSprite = new BCGL_Sprite(size);
 
 		// Read contents of string to new object
-		spriteFile.read((char*)newSprite->getString(), ((short)sizeof(CHAR_INFO)) * size.X * size.Y);
+		spriteFile.read((char*)newSprite->getString(), ((short)sizeof(BCGL_Char)) * size.X * size.Y);
 
 		spriteFile.close();
 	}
@@ -91,23 +91,23 @@ BCGL_Sprite* BCGL_Sprite::deserialize(const char* path)
 	return newSprite;
 }
 
-CHAR_INFO* BCGL_Sprite::getString()
+BCGL_Char* BCGL_Sprite::getString()
 {
 	return string;
 }
 
-CHAR_INFO BCGL_Sprite::getCharacter(COORD spriteCoord)
+BCGL_Char BCGL_Sprite::getCharacter(COORD spriteCoord)
 {
 	return string[spriteCoord.X % size.X + (spriteCoord.Y % size.Y) * size.X];
 }
 
-void BCGL_Sprite::setCharacter(COORD spriteCoord, CHAR_INFO chraracter)
+void BCGL_Sprite::setCharacter(COORD spriteCoord, BCGL_Char chraracter)
 {
 	string[spriteCoord.X % size.X + (spriteCoord.Y % size.Y) * size.X] = chraracter;
 }
 
-// Sets this sprite's string to a null-terminated string of normal ASCII characters w/ common attributes
-void BCGL_Sprite::setText(char* string, WORD attributes, WCHAR padChar)
+// Sets this sprite's string to a null-terminated string of normal ASCII characters w/ common color
+void BCGL_Sprite::setText(char* string, unsigned char color, BCGL_Char padChar)
 {
 	bool padding = false;	// True when null terminator has been passed, and remaining size is padded
 
@@ -122,17 +122,17 @@ void BCGL_Sprite::setText(char* string, WORD attributes, WCHAR padChar)
 		// Add char from text to sprite, or space if padding
 		if (!padding)
 		{
-			BCGL_Sprite::string[i].Char.UnicodeChar = string[i];
-			BCGL_Sprite::string[i].Attributes = attributes;
+			BCGL_Sprite::string[i].code = string[i];
+			BCGL_Sprite::string[i].color = color;
 		}
 		else
 		{
-			BCGL_Sprite::string[i] = { padChar, attributes };
+			BCGL_Sprite::string[i] = padChar;
 		}
 	}
 } 
 
-void BCGL_Sprite::setValue(int value, WORD attributes, WCHAR padChar)
+void BCGL_Sprite::setValue(int value, unsigned char color, BCGL_Char padChar)
 {
 	bool padding = false;	// True when all digits have been read, and remaining size is padded
 
@@ -144,13 +144,13 @@ void BCGL_Sprite::setValue(int value, WORD attributes, WCHAR padChar)
 		// Do once before checking if padding is necessary so value of 0 will still be displayed even is padChar is not '0'
 		if (!padding)
 		{
-			BCGL_Sprite::string[c].Char.UnicodeChar = value % 10 + '0';
-			BCGL_Sprite::string[c].Attributes = attributes;
+			BCGL_Sprite::string[c].code = value % 10 + '0';
+			BCGL_Sprite::string[c].color = color;
 			value /= 10;
 		}
 		else
 		{
-			BCGL_Sprite::string[c] = { padChar, attributes };
+			BCGL_Sprite::string[c] = padChar;
 		}
 
 		if (value == 0) {

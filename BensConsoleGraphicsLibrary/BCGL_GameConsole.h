@@ -14,7 +14,7 @@ class BCGL_GameConsole {
 
 		bool show(bool stretch);										// Attempt to create buffer and display on screen
 		bool addPanel(BCGL_Panel* panel);								// Add panel to this console
-		bool drawPanelBorder(BCGL_Panel* panel, CHAR_INFO* borderChar);	// Draw a border around a panel
-		bool updateBuffer();										// Update console buffer
+		bool drawPanelBorder(BCGL_Panel* panel, BCGL_Char* borderChar);	// Draw a border around a panel directly to buffer
+		bool updateBuffer();											// Update console buffer
 		
 };
