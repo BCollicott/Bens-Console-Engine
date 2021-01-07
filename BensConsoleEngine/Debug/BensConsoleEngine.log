@@ -1,8 +1,0 @@
-﻿  BCE_GameConsole.cpp
-C:\Users\benja\source\repos\Bens Console Engine\BensConsoleEngine\BCE_GameConsole.cpp(264,25): warning C4018: '<': signed/unsigned mismatch
-  BCE_Panel.cpp
-C:\Users\benja\source\repos\Bens Console Engine\BensConsoleEngine\BCE_Panel.cpp(42,29): warning C4018: '<': signed/unsigned mismatch
-  BCE_Space.cpp
-  BCE_Sprite.cpp
-  Generating Code...
-  BensConsoleEngine.vcxproj -> C:\Users\benja\source\repos\Bens Console Engine\Debug\BensConsoleEngine.lib

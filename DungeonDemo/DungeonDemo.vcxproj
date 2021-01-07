@@ -88,7 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\benja\source\repos\Bens Console Engine\BensConsoleEngine;C:\Users\benja\source\repos\Bens Console Engine\Debug;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\BensConsoleGraphicsLibrary;C:\Users\benja\source\repos\Bens Console Engine\Debug;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -103,7 +103,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\benja\source\repos\Bens Console Engine\BensConsoleEngine;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\BensConsoleGraphicsLibrary;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,7 +118,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\benja\source\repos\Bens Console Engine\BensConsoleEngine;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\BensConsoleGraphicsLibrary;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\benja\source\repos\Bens Console Engine\BensConsoleEngine;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\BensConsoleGraphicsLibrary;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,6 +147,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BensConsoleEngine\BensConsoleEngine.vcxproj">
+      <Project>{7d130355-1240-4826-95cd-0321767388c8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\BensConsoleGraphicsLibrary\BensConsoleGraphicsLibrary.vcxproj">
       <Project>{7d130355-1240-4826-95cd-0321767388c8}</Project>
     </ProjectReference>
   </ItemGroup>

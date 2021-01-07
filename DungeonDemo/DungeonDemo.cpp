@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
-#include "BCE.h"
+#include "BCGL.h"
 
-BCE_Space* createFloor(SHORT numRooms);
-void destroyFloor(BCE_Space* floor);
+BCGL_Space* createFloor(SHORT numRooms);
+void destroyFloor(BCGL_Space* floor);
 
 int main()
 {
@@ -12,7 +12,7 @@ int main()
     const SHORT CONSOLE_HEIGHT = 45;    // Number of rows of characters
 
     // Create game console
-    BCE_GameConsole gameConsole(CONSOLE_WIDTH, CONSOLE_HEIGHT);
+    BCGL_GameConsole gameConsole(CONSOLE_WIDTH, CONSOLE_HEIGHT);
     if (!gameConsole.show(true))
     {
         std::cout << "Failed to show game console\n";
@@ -20,17 +20,17 @@ int main()
     }
 
     // Create spaces
-    BCE_Space textSpace(1);    // Text messages shown in lower panel
-    BCE_Space statSpace(1);    // Player/game statistics shown in right panel
+    BCGL_Space textSpace(1);    // Text messages shown in lower panel
+    BCGL_Space statSpace(1);    // Player/game statistics shown in right panel
 
     // Put first floor space as the first element in a vector of dungeon floor spaces
-    std::vector<BCE_Space*> floors; // Each floor of the dungeon is its own space
+    std::vector<BCGL_Space*> floors; // Each floor of the dungeon is its own space
     floors.push_back(createFloor(5));
 
     // Test mobile object
     CHAR_INFO mobileString[4] = { { 0x25b2, 0b00000100 }, { 0x25bc, 0b00000100 }, { 0x25c4, 0b00000100 }, { 0x25ba, 0b00000100 } };
-    BCE_Sprite mobileSprite(mobileString, { 2, 2 });
-    BCE_GameObject mobileObject({ 6, -12 }, {2, 2}, &mobileSprite);
+    BCGL_Sprite mobileSprite(mobileString, { 2, 2 });
+    BCGL_GameObject mobileObject({ 6, -12 }, {2, 2}, &mobileSprite);
     //mobileObject.setColliderType(COLLIDER_MASK);
     //mobileObject.addMask(FALSE);
     //mobileObject.setMaskBit(0, 0, TRUE);
@@ -39,28 +39,28 @@ int main()
 
     // Test static object
     CHAR_INFO staticString[2] = { {'A', 0b00000010 }, {'B', 0b00000010 } };
-    BCE_Sprite staticSprite(staticString, { 1, 2 });
-    BCE_GameObject staticObject({15, -11}, { 8, 9 }, &staticSprite);
+    BCGL_Sprite staticSprite(staticString, { 1, 2 });
+    BCGL_GameObject staticObject({15, -11}, { 8, 9 }, &staticSprite);
     staticObject.setColliderType(COLLIDER_RECT);
     floors[0]->addGameObject(&staticObject, 1);
 
     // Test object from file
-    BCE_Sprite* fileSprite = BCE_Sprite::deserialize("palettesprite");
+    BCGL_Sprite* fileSprite = BCGL_Sprite::deserialize("palettesprite");
     if (fileSprite == nullptr)
     {
         std::cout << "Failed to load sprite from file\n";
         return 0;
     }
-    BCE_GameObject fileObject({ 20, 0 }, fileSprite);
+    BCGL_GameObject fileObject({ 20, 0 }, fileSprite);
     fileObject.setColliderType(COLLIDER_RECT);
     floors[0]->addGameObject(&fileObject, 1);
 
     // Create panels, text and stat panels sized to allow for borders
     SHORT textRows = 4; // Number of rows allocated to bottom text panel
     SHORT statCols = 8; // Number of cols allocated to right stats panel
-    BCE_Panel textPanel(&textSpace, { 1, CONSOLE_HEIGHT - 1 - textRows, CONSOLE_WIDTH - 2, CONSOLE_HEIGHT - 2 });
-    BCE_Panel statPanel(&statSpace, { CONSOLE_WIDTH - 1 - statCols, 1, CONSOLE_WIDTH - 2, textPanel.getWriteRegion().Top - 2 });
-    BCE_Panel gamePanel(floors[0], {1, 1, statPanel.getWriteRegion().Left - 2, textPanel.getWriteRegion().Top - 2 });
+    BCGL_Panel textPanel(&textSpace, { 1, CONSOLE_HEIGHT - 1 - textRows, CONSOLE_WIDTH - 2, CONSOLE_HEIGHT - 2 });
+    BCGL_Panel statPanel(&statSpace, { CONSOLE_WIDTH - 1 - statCols, 1, CONSOLE_WIDTH - 2, textPanel.getWriteRegion().Top - 2 });
+    BCGL_Panel gamePanel(floors[0], {1, 1, statPanel.getWriteRegion().Left - 2, textPanel.getWriteRegion().Top - 2 });
     
     // Add panels to gameConsole
     if (!gameConsole.addPanel(&textPanel) || !gameConsole.addPanel(&statPanel) || !gameConsole.addPanel(&gamePanel))
@@ -158,18 +158,18 @@ int main()
     }
 }
 
-BCE_Space* createFloor(SHORT numRooms)
+BCGL_Space* createFloor(SHORT numRooms)
 {
-    BCE_Space* newFloor = new BCE_Space(3);   // New floor being generated w/ layers for background, statics, and mobiles    std::vector<SMALL_RECT> rooms;  // Contains dimensions of all rooms
+    BCGL_Space* newFloor = new BCGL_Space(3);   // New floor being generated w/ layers for background, statics, and mobiles    std::vector<SMALL_RECT> rooms;  // Contains dimensions of all rooms
 
     CHAR_INFO* roomChar = (CHAR_INFO*)malloc(sizeof(CHAR_INFO));
     roomChar[0] = { ' ', 0b01000000 };
-    BCE_Sprite* roomSprite = new BCE_Sprite(roomChar, { 1, 1 });
-    BCE_GameObject* roomObject = new BCE_GameObject({ 2, -3 }, {10, 7}, roomSprite);
+    BCGL_Sprite* roomSprite = new BCGL_Sprite(roomChar, { 1, 1 });
+    BCGL_GameObject* roomObject = new BCGL_GameObject({ 2, -3 }, {10, 7}, roomSprite);
     roomObject->setColliderType(COLLIDER_MASK);
 
     // Give roomObject a mask to show only walls/perimeter
-    BCE_Mask* roomMask = new BCE_Mask(roomObject->getSize(), false);
+    BCGL_Mask* roomMask = new BCGL_Mask(roomObject->getSize(), false);
     COORD maskIterator; // Coordinate pair for iterating through and initializing room mask
     for (maskIterator.X = 0; maskIterator.X < roomMask->getSize().X; maskIterator.X++)
     {
@@ -188,12 +188,12 @@ BCE_Space* createFloor(SHORT numRooms)
     return newFloor;
 }
 
-void destroyFloor(BCE_Space* floor)
+void destroyFloor(BCGL_Space* floor)
 {
     // Free memory for rooms
     for (int r = 0; r < floor->getLayer(0).size(); r++)
     {
-        BCE_GameObject* roomObject = floor->getLayer(0)[0];    // Room objects are unique to this space
+        BCGL_GameObject* roomObject = floor->getLayer(0)[0];    // Room objects are unique to this space
 
         // Free memory for sprite's string and delete sprite itself, as it is unique to roomObject and generated in createFloor
         roomObject->getSprite()->freeMemory();

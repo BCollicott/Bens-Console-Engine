@@ -1,0 +1,2 @@
+C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\Debug\BensConsoleGraphicsLibrary.pdb
+C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\BensConsoleGraphicsLibrary\Debug\BensConsoleGraphicsLibrary.pdb

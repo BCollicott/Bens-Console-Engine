@@ -1,5 +1,5 @@
 #include <iostream>
-#include "BCE.h"
+#include "BCGL.h"
 
 using namespace std;
 
@@ -25,8 +25,8 @@ const unsigned short CHARACTER_SET[256] =
     0x2261, 0x00B1, 0x2265, 0x2264, 0x2320, 0x2321, 0x00F7, 0x2248, 0x00B0, 0x2219, 0x00B7, 0x221A, 0x207F, 0x00B2, 0x25A0, 0x00A0,
 };
 
-BCE_Sprite* generateColorPalette();
-BCE_Sprite* generateCharacterSet();
+BCGL_Sprite* generateColorPalette();
+BCGL_Sprite* generateCharacterSet();
 
 int main()
 {
@@ -35,7 +35,7 @@ int main()
     const short CONSOLE_HEIGHT = 36;    // Number of rows of characters
 
     // Create game console
-    BCE_GameConsole gameConsole(CONSOLE_WIDTH, CONSOLE_HEIGHT);
+    BCGL_GameConsole gameConsole(CONSOLE_WIDTH, CONSOLE_HEIGHT);
     if (!gameConsole.show(true))
     {
         std::cout << "Failed to show game console\n";
@@ -43,7 +43,7 @@ int main()
     }
 
     // Initialize assets under edit as square with space characters and white background
-    BCE_Sprite* spriteUnderEdit = new BCE_Sprite({ 5, 5 });
+    BCGL_Sprite* spriteUnderEdit = new BCGL_Sprite({ 5, 5 });
     
     COORD iter;
     for (iter.X = 0; iter.X < spriteUnderEdit->getSize().X; iter.X++)
@@ -54,38 +54,38 @@ int main()
         }
     }
     
-    BCE_GameObject objectUnderEdit({ 0, 0 }, spriteUnderEdit);
+    BCGL_GameObject objectUnderEdit({ 0, 0 }, spriteUnderEdit);
 
     // Create cursor
-    BCE_Sprite cursorSprite({ 1, 1 });
+    BCGL_Sprite cursorSprite({ 1, 1 });
     cursorSprite.setCharacter({ 0, 0 }, { ' ', 0b0111 });
-    BCE_GameObject cursorObject({ 1, -1 }, &cursorSprite);
+    BCGL_GameObject cursorObject({ 1, -1 }, &cursorSprite);
 
     // Create color palette assets
-    BCE_Sprite* colorPaletteSprite = generateColorPalette();
-    BCE_GameObject textColorObject({ 0, 0 }, colorPaletteSprite);
-    BCE_GameObject backgroundColorObject({ 2, 0 }, colorPaletteSprite);
+    BCGL_Sprite* colorPaletteSprite = generateColorPalette();
+    BCGL_GameObject textColorObject({ 0, 0 }, colorPaletteSprite);
+    BCGL_GameObject backgroundColorObject({ 2, 0 }, colorPaletteSprite);
 
     // Create character set assets
-    BCE_Sprite* characterSetSprite = generateCharacterSet();
-    BCE_GameObject characterSetObject({ 4, 0 }, characterSetSprite);
+    BCGL_Sprite* characterSetSprite = generateCharacterSet();
+    BCGL_GameObject characterSetObject({ 4, 0 }, characterSetSprite);
 
     // Add color/character assets to palette space
-    BCE_Space paletteSpace(2);
+    BCGL_Space paletteSpace(2);
     paletteSpace.addGameObject(&textColorObject, 0);
     paletteSpace.addGameObject(&backgroundColorObject, 0);
     paletteSpace.addGameObject(&characterSetObject, 0);
 
     // Add assets under edit and cursor to editing space
-    BCE_Space editSpace(2);
+    BCGL_Space editSpace(2);
     editSpace.addGameObject(&objectUnderEdit, 0);
     editSpace.addGameObject(&cursorObject, 1);
 
     // Add panels for color palettes and character set within palette space at bottom of screen
     CHAR_INFO borderChar = { ' ', 0b01110000 }; // Character used for drawing borders
-    BCE_Panel textColorPanel(&paletteSpace, { 1, CONSOLE_HEIGHT - colorPaletteSprite->getSize().Y - 1, colorPaletteSprite->getSize().X, CONSOLE_HEIGHT - 2 });
-    BCE_Panel backgroundColorPanel(&paletteSpace, { textColorPanel.getWriteRegion().Right + 2, textColorPanel.getWriteRegion().Top, textColorPanel.getWriteRegion().Right + colorPaletteSprite->getSize().X + 1, textColorPanel.getWriteRegion().Bottom });
-    BCE_Panel characterSetPanel(&paletteSpace, { backgroundColorPanel.getWriteRegion().Right + 2, textColorPanel.getWriteRegion().Top, backgroundColorPanel.getWriteRegion().Right + characterSetSprite->getSize().X + 1, textColorPanel.getWriteRegion().Bottom });
+    BCGL_Panel textColorPanel(&paletteSpace, { 1, CONSOLE_HEIGHT - colorPaletteSprite->getSize().Y - 1, colorPaletteSprite->getSize().X, CONSOLE_HEIGHT - 2 });
+    BCGL_Panel backgroundColorPanel(&paletteSpace, { textColorPanel.getWriteRegion().Right + 2, textColorPanel.getWriteRegion().Top, textColorPanel.getWriteRegion().Right + colorPaletteSprite->getSize().X + 1, textColorPanel.getWriteRegion().Bottom });
+    BCGL_Panel characterSetPanel(&paletteSpace, { backgroundColorPanel.getWriteRegion().Right + 2, textColorPanel.getWriteRegion().Top, backgroundColorPanel.getWriteRegion().Right + characterSetSprite->getSize().X + 1, textColorPanel.getWriteRegion().Bottom });
     backgroundColorPanel.setPosInSpace({ backgroundColorObject.getPos() });
     characterSetPanel.setPosInSpace({ characterSetObject.getPos() });
     gameConsole.addPanel(&textColorPanel);
@@ -96,9 +96,12 @@ int main()
     gameConsole.drawPanelBorder(&characterSetPanel, &borderChar);
 
     // Add panel displaying editing space and display it, size allowing for borders of surrounding panels
-    BCE_Panel editPanel(&editSpace, { 0, 0, CONSOLE_WIDTH - 1, textColorPanel.getWriteRegion().Top - 2 });
+    BCGL_Panel editPanel(&editSpace, { 0, 0, CONSOLE_WIDTH - 1, textColorPanel.getWriteRegion().Top - 2 });
     gameConsole.addPanel(&editPanel);
     
+    BCGL_GameObject activeObject = objectUnderEdit;
+
+
     // Begin main loop
     SHORT keyMask = (SHORT)pow(2, (sizeof(SHORT) * 8) - 1) | (SHORT)1;   // Mask containing most sigificant bit and least significant bit of SHORT for reading key input
     while (true)
@@ -122,11 +125,14 @@ int main()
             cursorDelta.Y -= 1;
         }
         cursorObject.transate(cursorDelta);
-
+        if (!paletteSpace.detectCollision(&cursorObject, &activeObject))
+        {
+            cursorObject.transate({ -cursorDelta.X, -cursorDelta.Y });
+        }
         
         // Update cursor sprite to color inversion of character it is hovering over
-        CHAR_INFO cursorChar = spriteUnderEdit->getCharacter(objectUnderEdit.spaceCoordToObjectCoord(cursorObject.getPos()));
-        cursorChar.Attributes = (char)~cursorChar.Attributes;
+        CHAR_INFO cursorChar = activeObject.getSprite()->getCharacter(activeObject.spaceCoordToObjectCoord(cursorObject.getPos()));
+        cursorChar.Attributes = (cursorChar.Attributes ^ 0b11111111) & 0b01110111;
         cursorSprite.setCharacter({ 0, 0 }, cursorChar);
         
 
@@ -151,7 +157,7 @@ int main()
         // Load sprite if ctrl+O pressed
         if ((GetAsyncKeyState(VK_CONTROL) & keyMask) && (GetAsyncKeyState(0x4F) & keyMask))
         {
-            BCE_Sprite* tempSprite = BCE_Sprite::deserialize("savedsprite");    // Store pointer to sprite from file so it can be safely checked if null
+            BCGL_Sprite* tempSprite = BCGL_Sprite::deserialize("savedsprite");    // Store pointer to sprite from file so it can be safely checked if null
             if (tempSprite == nullptr)
             {
                 cout << "Failed to open sprite from file\n";
@@ -192,9 +198,9 @@ int main()
 }
 
 // Generate a 2x8 sprite containing all 16 colors, with intense colors on the bottom row
-BCE_Sprite* generateColorPalette()
+BCGL_Sprite* generateColorPalette()
 {
-    BCE_Sprite* paletteSprite = new BCE_Sprite({ 2, 8 });
+    BCGL_Sprite* paletteSprite = new BCGL_Sprite({ 2, 8 });
 
     // Iterate through sprite and set characters to spaces with colored backgrounds
     COORD iter;
@@ -215,9 +221,9 @@ BCE_Sprite* generateColorPalette()
     return paletteSprite;
 }
 
-BCE_Sprite* generateCharacterSet()
+BCGL_Sprite* generateCharacterSet()
 {
-    BCE_Sprite* charSetSprite = new BCE_Sprite({ 32, 8 });
+    BCGL_Sprite* charSetSprite = new BCGL_Sprite({ 32, 8 });
 
     COORD iter;
     for (iter.X = 0; iter.X < charSetSprite->getSize().X; iter.X++)
