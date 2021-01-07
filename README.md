@@ -1,7 +1,7 @@
 # Ben's Console Graphics Library
 1/7/2021
 
-This C++ library provides objects for drawing simple text-based 2D grahics using the Windows Console API. 
+This C++ library provides objects for drawing simple text-based 2D grahics using the Windows Console API. The Visual Studio solution is provided, with .lib and .h files available in directories specified below.
 
 ## Setup
 
