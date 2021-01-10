@@ -5,7 +5,7 @@ This C++ library provides objects for drawing simple text-based 2D grahics using
 
 ## Setup
 
-As this is a static library, BensConsoleGraphicsLibrary.lib and all header files must be included. At the moment, these can be retrieved from Bens-Console-Engine/Debug/ and Bens-Console-Engine/BensConsoleGraphicsLibrary/ respectively.
+As this is a static library, BensConsoleGraphicsLibrary.lib and all header files must be included. At the moment, these can be retrieved from Bens-Console-Graphics-Library/Debug/ and Bens-Console-Graphics-Library/BensConsoleGraphicsLibrary/ respectively.
 
 ### Visual Studio
 1. Download the aforementioned .lib and .h files
