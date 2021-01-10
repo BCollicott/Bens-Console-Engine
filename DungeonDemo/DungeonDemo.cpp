@@ -4,6 +4,7 @@
 
 BCGL_Space* createFloor(SHORT numRooms);
 void destroyFloor(BCGL_Space* floor);
+void quit(bool* running);
 
 int main()
 {
@@ -28,7 +29,7 @@ int main()
     floors.push_back(createFloor(5));
 
     // Test mobile object
-    CHAR_INFO mobileString[4] = { { 0x25b2, 0b00000100 }, { 0x25bc, 0b00000100 }, { 0x25c4, 0b00000100 }, { 0x25ba, 0b00000100 } };
+    BCGL_Char mobileString[4] = { { 'A', 0b00000100 }, { 'B', 0b00000100 }, { 'C', 0b00000100 }, { 'D', 0b00000100 } };
     BCGL_Sprite mobileSprite(mobileString, { 2, 2 });
     BCGL_GameObject mobileObject({ 6, -12 }, {2, 2}, &mobileSprite);
     //mobileObject.setColliderType(COLLIDER_MASK);
@@ -38,7 +39,7 @@ int main()
     floors[0]->addGameObject(&mobileObject, 2);
 
     // Test static object
-    CHAR_INFO staticString[2] = { {'A', 0b00000010 }, {'B', 0b00000010 } };
+    BCGL_Char staticString[2] = { {'A', 0b00000010 }, {'B', 0b00000010 } };
     BCGL_Sprite staticSprite(staticString, { 1, 2 });
     BCGL_GameObject staticObject({15, -11}, { 8, 9 }, &staticSprite);
     staticObject.setColliderType(COLLIDER_RECT);
@@ -70,7 +71,7 @@ int main()
     }
 
     // Draw borders around all panels
-    CHAR_INFO borderChar = { ' ', 0b01110000 }; // Space w/ non-intense white background
+    BCGL_Char borderChar = { ' ', 0b01110000 }; // Space w/ non-intense white background
     if (!gameConsole.drawPanelBorder(&textPanel, &borderChar) || !gameConsole.drawPanelBorder(&statPanel, &borderChar) || !gameConsole.drawPanelBorder(&gamePanel, &borderChar))
     {
         std::cout << "Failed to draw panel border(s) to console\n";
@@ -78,25 +79,10 @@ int main()
     }
 
     SHORT keyMask = (SHORT)pow(2, (sizeof(SHORT) * 8) - 1) | (SHORT)1;   // Mask containing most sigificant bit and least significant bit of SHORT for reading key input
-    while (true)
+    bool running = true;
+    while (running)
     {
         COORD mobileDelta = { 0, 0 };
-        if (GetAsyncKeyState(VK_LEFT) & keyMask)
-        {
-            mobileDelta.X -= 1;
-        }
-        if (GetAsyncKeyState(VK_RIGHT) & keyMask)
-        {
-            mobileDelta.X += 1;
-        }
-        if (GetAsyncKeyState(VK_UP) & keyMask)
-        {
-            mobileDelta.Y += 1;
-        }
-        if (GetAsyncKeyState(VK_DOWN) & keyMask)
-        {
-            mobileDelta.Y -= 1;
-        }
 
         mobileObject.transate(mobileDelta);
 
@@ -128,20 +114,7 @@ int main()
         
         if (GetAsyncKeyState(VK_SPACE) & keyMask)
         {
-            // Free memort for sprite loaded from file
-            fileSprite->freeMemory();
-            delete(fileSprite);
-
-            // Free memory for all floors
-            for (int f = 0; f < floors.size(); f++)
-            {
-                destroyFloor(floors[f]);
-            }
-
-            // Free memory allocted by panels (buffers)
-            textPanel.freeMemory();
-            statPanel.freeMemory();
-            gamePanel.freeMemory();
+            
             
             break;
         }
@@ -156,13 +129,33 @@ int main()
 
         Sleep(1000 / 10);
     }
+
+    // Free memory for sprite loaded from file
+    fileSprite->freeMemory();
+    delete(fileSprite);
+
+    // Free memory for all floors
+    for (int f = 0; f < floors.size(); f++)
+    {
+        destroyFloor(floors[f]);
+    }
+
+    // Free memory allocted by panels (buffers)
+    textPanel.freeMemory();
+    statPanel.freeMemory();
+    gamePanel.freeMemory();
+}
+
+void quit(bool* running)
+{
+    *running = false;
 }
 
 BCGL_Space* createFloor(SHORT numRooms)
 {
     BCGL_Space* newFloor = new BCGL_Space(3);   // New floor being generated w/ layers for background, statics, and mobiles    std::vector<SMALL_RECT> rooms;  // Contains dimensions of all rooms
 
-    CHAR_INFO* roomChar = (CHAR_INFO*)malloc(sizeof(CHAR_INFO));
+    BCGL_Char* roomChar = (BCGL_Char*)malloc(sizeof(BCGL_Char));
     roomChar[0] = { ' ', 0b01000000 };
     BCGL_Sprite* roomSprite = new BCGL_Sprite(roomChar, { 1, 1 });
     BCGL_GameObject* roomObject = new BCGL_GameObject({ 2, -3 }, {10, 7}, roomSprite);

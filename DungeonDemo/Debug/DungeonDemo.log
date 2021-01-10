@@ -1,6 +1,7 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\Microsoft.Common.CurrentVersion.targets(1850,5): warning : The referenced project '..\BensConsoleEngine\BensConsoleEngine.vcxproj' does not exist.
   DungeonDemo.cpp
-C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\DungeonDemo\DungeonDemo.cpp(107,33): warning C4018: '<': signed/unsigned mismatch
-C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\DungeonDemo\DungeonDemo.cpp(136,31): warning C4018: '<': signed/unsigned mismatch
-C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\DungeonDemo\DungeonDemo.cpp(194,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\DungeonDemo\DungeonDemo.cpp(93,33): warning C4018: '<': signed/unsigned mismatch
+C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\DungeonDemo\DungeonDemo.cpp(138,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\DungeonDemo\DungeonDemo.cpp(187,23): warning C4018: '<': signed/unsigned mismatch
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(467,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (BensConsoleEngine.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   DungeonDemo.vcxproj -> C:\Users\benja\source\repos\BensConsoleGraphicsLibrary\Debug\DungeonDemo.exe

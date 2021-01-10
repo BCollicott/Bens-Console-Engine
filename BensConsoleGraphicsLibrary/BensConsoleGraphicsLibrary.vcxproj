@@ -22,6 +22,7 @@
     <ClInclude Include="BCGL.h" />
     <ClInclude Include="BCGL_GameConsole.h" />
     <ClInclude Include="BCGL_GameObject.h" />
+    <ClInclude Include="BCGL_InputManager.h" />
     <ClInclude Include="BCGL_Mask.h" />
     <ClInclude Include="BCGL_Panel.h" />
     <ClInclude Include="BCGL_Space.h" />
@@ -30,6 +31,7 @@
   <ItemGroup>
     <ClCompile Include="BCGL_GameConsole.cpp" />
     <ClCompile Include="BCGL_GameObject.cpp" />
+    <ClCompile Include="BCGL_InputManager.cpp" />
     <ClCompile Include="BCGL_Mask.cpp" />
     <ClCompile Include="BCGL_Panel.cpp" />
     <ClCompile Include="BCGL_Space.cpp" />

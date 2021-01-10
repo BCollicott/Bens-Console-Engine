@@ -6,3 +6,4 @@
 #include "BCGL_GameObject.h"
 #include "BCGL_Sprite.h"
 #include "BCGL_Mask.h"
+#include "BCGL_InputManager.h"

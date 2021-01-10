@@ -79,11 +79,15 @@ int main()
     BCGL_Panel editPanel(&editSpace, { 0, 0, CONSOLE_WIDTH - 1, textColorPanel.getWriteRegion().Top - 2 });
     gameConsole.addPanel(&editPanel);
 
+    // Set up input manager and key press and start thread
+    BCGL_InputManager inputManager;
+    BCGL_KeyStroke* quitKeyPress = inputManager.addKeyStroke(VK_SPACE, MF_ALT | MF_CTRL | MF_SHIFT);
+    inputManager.start();
 
     // Begin main loop
-    SHORT keyMask = (SHORT)pow(2, (sizeof(SHORT) * 8) - 1) | (SHORT)1;   // Mask containing most sigificant bit and least significant bit of SHORT for reading key input
     while (true)
     {
+        /*
         // Get cursor movement from input
         COORD cursorDelta = { 0, 0 };
         if (GetAsyncKeyState(VK_LEFT) & keyMask)
@@ -147,9 +151,9 @@ int main()
                 editPanel.clearBuffer();
             }
         }
-        
-        // Exit main loop if crtl+Q pressed
-        if ((GetAsyncKeyState(VK_CONTROL) & keyMask) && (GetAsyncKeyState(0x51) & keyMask))
+        */
+        // Exit main loop if space pressed
+        if (quitKeyPress->isPressed)
         {
             break;
         }
@@ -160,9 +164,14 @@ int main()
         editPanel.updateBuffer();
         gameConsole.updateBuffer();
 
-        Sleep(100);
+        inputManager.nextFrame();
+
+        Sleep(1000);
     }
     
+    inputManager.stop();
+
+    free(quitKeyPress);
 
     // Free memory and Delete assets under edit and palette assets
     spriteUnderEdit->freeMemory();

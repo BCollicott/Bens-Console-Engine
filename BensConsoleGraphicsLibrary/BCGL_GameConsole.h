@@ -5,12 +5,14 @@
 
 // Fullscreen console of variable dimension for displaying text within multiple panels. 
 class BCGL_GameConsole {
-	HANDLE buffer;			// Windows handle to console screen buffer
+	HANDLE handle;					// Windows handle to console screen buffer
 	COORD consoleSize;				// Dimensions of buffer/window in characters
 	std::vector<BCGL_Panel*> panels;	// Pointers to panels contained in this console
 
 	public:
 		BCGL_GameConsole(short width, short height);				// Constructor
+
+		HANDLE getHandle();												// Get handle to buffer
 
 		bool show(bool stretch);										// Attempt to create buffer and display on screen
 		bool addPanel(BCGL_Panel* panel);								// Add panel to this console
